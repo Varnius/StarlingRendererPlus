@@ -12,7 +12,7 @@ Library contents:
 -----------------
 
 * Deferred renderer which supports
- * Ambient and point lights.
+ * Ambient and point lights
  * Spotlights (TODO)
 * Pixel-perfect 2D shadow renderer
 * Post FX renderer, currently contains following effects:
