@@ -11,8 +11,14 @@ For the time being, some code is left within the fork, so you should include bot
 Library contents:
 -----------------
 
-* Deferred renderer
+* Deferred renderer which supports
+ * Ambient and point lights.
+ * Spotlights (TODO)
 * Pixel-perfect 2D shadow renderer
 * Post FX renderer, currently contains following effects:
  * Bloom
  * Anamorphic Flares
+ 
+<a href="http://nekobit.eu/demos/starling-deferred/Sandbox.html" target="_blank">Online Demo</a> (project can be found [here](https://github.com/Varnius/StarlingDynamicShadows2D))
+
+<a href="http://nekobit.eu/demos/starling-deferred/Sandbox.html" target="_blank"><img src="http://nekobit.eu/screens/mrt.png" alt="" /></a>
