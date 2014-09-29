@@ -1,7 +1,7 @@
 Starling Renderer Plus
 ====================
 
-Starling deferred shading and post-fx extension for Starling
+Deferred shading and post-fx extension for Starling
 ------------------------------------------------------------
 
 This project is intended to remove the need to have separate Starling fork for my <a href="https://github.com/Varnius/Starling-Framework">Starling deferred renderer</a> extension, thus making it a standalone extension which should work with official releases of Starling.
