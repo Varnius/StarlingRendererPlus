@@ -2,6 +2,7 @@ package starling.extensions.deferredShading.display
 {
 	import com.adobe.utils.AGALMiniAssembler;
 	
+	import flash.display.BitmapData;
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DBlendFactor;
 	import flash.display3D.Context3DCompareMode;
@@ -35,6 +36,9 @@ package starling.extensions.deferredShading.display
 		protected var assembler:AGALMiniAssembler = new AGALMiniAssembler();
 		
 		private static const DEFAULT_AMBIENT:AmbientLight = new AmbientLight(0x000000, 1.0)
+		public static var defaultNormalMap:Texture;
+		public static var defaultDepthMap:Texture;		
+		public static var defaultSpecularMap:Texture;
 		
 		// Quad
 		
@@ -42,6 +46,8 @@ package starling.extensions.deferredShading.display
 		protected var overlayIndexBuffer:IndexBuffer3D;
 		protected var vertices:Vector.<Number> = new <Number>[-1, 1, 0, 0, 0, -1, -1, 0, 0, 1, 1,  1, 0, 1, 0, 1, -1, 0, 1, 1];
 		protected var indices:Vector.<uint> = new <uint>[0,1,2,2,1,3];
+		
+		public static var renderPass:String = RenderPass.NORMAL;
 		
 		// Render targets	
 		
@@ -164,6 +170,24 @@ package starling.extensions.deferredShading.display
 			MRTPassRenderTargets = new Vector.<Texture>();
 			MRTPassRenderTargets.push(diffuseRT, normalsRT, depthRT);
 			
+			// Default maps
+			
+			// Normal
+			
+			var bd:BitmapData = new BitmapData(4, 4);
+			bd.fillRect(new Rectangle(0, 0, 4, 4), 0xFF8080FF);
+			defaultNormalMap = Texture.fromBitmapData(bd, false);
+			
+			// Specular
+			
+			bd.fillRect(new Rectangle(0, 0, 4, 4), 0xFFFFFFFF);
+			defaultSpecularMap = Texture.fromBitmapData(bd, false);
+			
+			// Depth
+			
+			bd.fillRect(new Rectangle(0, 0, 4, 4), 0xFF000000);
+			defaultDepthMap = Texture.fromBitmapData(bd, false);
+			
 			prepared = true;
 		}
 		
@@ -227,8 +251,8 @@ package starling.extensions.deferredShading.display
 			
 			support.setRenderTargets(MRTPassRenderTargets);
 			
-			var prevPass:String = support.renderPass;
-			support.renderPass = RenderPass.MRT;
+			var prevPass:String = renderPass;
+			renderPass = RenderPass.MRT;
 			
 			support.clear();
 			super.render(support, parentAlpha);
@@ -241,7 +265,7 @@ package starling.extensions.deferredShading.display
 			// todo: maybe move this to mrt pass??? (as a single channel in depth target)
 			// but probably not possible without breaking batching :>
 			
-			support.renderPass = RenderPass.OCCLUDERS;
+			renderPass = RenderPass.OCCLUDERS;
 			
 			tmpRenderTargets.length = 0;
 			tmpRenderTargets.push(occludersRT, null, null);
@@ -315,7 +339,7 @@ package starling.extensions.deferredShading.display
 			
 			// Max shadow limit is height of shadowmap texture (currently 256)
 			
-			support.renderPass = RenderPass.SHADOWMAP;
+			renderPass = RenderPass.SHADOWMAP;
 			
 			for each(l in visibleLights)
 			{				
@@ -354,7 +378,7 @@ package starling.extensions.deferredShading.display
 			
 			if(lights.length)
 			{				
-				support.renderPass = RenderPass.LIGHTS;		
+				renderPass = RenderPass.LIGHTS;		
 				
 				// Set previously rendered maps
 				
@@ -421,7 +445,7 @@ package starling.extensions.deferredShading.display
 				context.setTextureAt(4, null);
 			}
 			
-			support.renderPass = prevPass;	
+			renderPass = prevPass;	
 		}
 		
 		/*-----------------------------

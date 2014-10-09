@@ -14,7 +14,7 @@ package starling.extensions.post
 	import starling.core.Starling;
 	import starling.display.Sprite;
 	import starling.events.Event;
-	import starling.extensions.deferredShading.Utils;
+	import starling.extensions.utils.ShaderUtils;
 	import starling.extensions.post.effects.PostEffect;
 	import starling.textures.Texture;
 
@@ -209,7 +209,7 @@ package starling.extensions.post
 		---------------------------*/		
 		
 		protected const VERTEX_SHADER:String = 			
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[
 					'mov op, va0',
 					'mov v0, va1'
@@ -220,7 +220,7 @@ package starling.extensions.post
 		 * Combines previously rendered maps.
 		 */
 		protected const FRAGMENT_SHADER:String =
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[
 					// Sample inputRT
 					'tex oc, v0, fs0 <2d, clamp, linear, mipnone>',

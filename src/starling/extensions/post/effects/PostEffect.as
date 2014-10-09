@@ -7,7 +7,8 @@ package starling.extensions.post.effects
 	import flash.display3D.Program3D;
 	
 	import starling.core.Starling;
-	import starling.extensions.deferredShading.Utils;
+	import starling.extensions.deferredShading.RenderPass;
+	import starling.extensions.utils.ShaderUtils;
 	import starling.extensions.post.PostEffectRenderer;
 	import starling.textures.Texture;
 
@@ -87,17 +88,17 @@ package starling.extensions.post.effects
 			
 			if(!Starling.current.getProgram(RESAMPLE))
 			{
-				resampleProgram = Starling.current.registerProgramFromSource(RESAMPLE, VERTEX_SHADER, FRAGMENT_SHADER, 2);
+				resampleProgram =  ShaderUtils.registerProgram(RESAMPLE, VERTEX_SHADER, FRAGMENT_SHADER, 2);
 			}
 			
 			if(!Starling.current.getProgram(SUPERSAMPLE))
 			{
-				supersampleProgram = Starling.current.registerProgramFromSource(SUPERSAMPLE, UBER_RESAMPLE_VERTEX_SHADER, UBER_RESAMPLE_FRAGMENT_SHADER, 2);
+				supersampleProgram =  ShaderUtils.registerProgram(SUPERSAMPLE, UBER_RESAMPLE_VERTEX_SHADER, UBER_RESAMPLE_FRAGMENT_SHADER, 2);
 			}
 			
 			if(!Starling.current.getProgram(SUPERSAMPLE_X))
 			{
-				supersampleProgramX = Starling.current.registerProgramFromSource(SUPERSAMPLE_X, UBER_RESAMPLE_X_VERTEX_SHADER, UBER_RESAMPLE_X_FRAGMENT_SHADER, 2);
+				supersampleProgramX =  ShaderUtils.registerProgram(SUPERSAMPLE_X, UBER_RESAMPLE_X_VERTEX_SHADER, UBER_RESAMPLE_X_FRAGMENT_SHADER, 2);
 			}
 		}
 		
@@ -213,7 +214,7 @@ package starling.extensions.post.effects
 		---------------------------*/		
 		
 		private const VERTEX_SHADER:String = 			
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Move UV coords to varying-0
 					"mov v0, va1",
@@ -226,7 +227,7 @@ package starling.extensions.post.effects
 		 * Combines previously rendered maps.
 		 */
 		private const FRAGMENT_SHADER:String =
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Sample source texture	
 					"tex ft0, v0, fs0 <2d,clamp,linear>",
@@ -239,7 +240,7 @@ package starling.extensions.post.effects
 		---------------------------*/
 		
 		private const UBER_RESAMPLE_VERTEX_SHADER:String = 			
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Move UV coords to varying-0
 					"mov v0, va1",
@@ -248,7 +249,7 @@ package starling.extensions.post.effects
 				]
 			);
 		private const UBER_RESAMPLE_FRAGMENT_SHADER:String =
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[		
 					// Adjust to pixel center (not needed???)
 					//'add ft0.xy, v0.xy, fc1.xy',
@@ -312,7 +313,7 @@ package starling.extensions.post.effects
 		---------------------------*/
 		
 		private const UBER_RESAMPLE_X_VERTEX_SHADER:String = 			
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Move UV coords to varying-0
 					'mov v0, va1',
@@ -325,7 +326,7 @@ package starling.extensions.post.effects
 				]
 			);
 		private const UBER_RESAMPLE_X_FRAGMENT_SHADER:String =
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[		
 					// Adjust to pixel center (not needed???)
 					//'add ft0.xy, v0.xy, fc1.xy',

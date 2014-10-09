@@ -18,8 +18,9 @@ package starling.extensions.deferredShading.lights
 	import starling.errors.MissingContextError;
 	import starling.events.Event;
 	import starling.extensions.deferredShading.RenderPass;
-	import starling.extensions.deferredShading.Utils;
+	import starling.extensions.utils.ShaderUtils;
 	import starling.extensions.deferredShading.renderer_internal;
+	import starling.extensions.deferredShading.display.DeferredShadingContainer;
 	import starling.textures.Texture;
 	import starling.utils.VertexData;
 	
@@ -120,7 +121,7 @@ package starling.extensions.deferredShading.lights
 		 */
 		override public function render(support:RenderSupport, alpha:Number):void
 		{
-			if(support.renderPass != RenderPass.LIGHTS)
+			if(DeferredShadingContainer.renderPass != RenderPass.LIGHTS)
 			{
 				return;
 			}
@@ -289,7 +290,7 @@ package starling.extensions.deferredShading.lights
 			// vc0 - mvpMatrix (occupies 4 vectors, vc0 - vc3)			
 			
 			var vertexProgramCode:String = 
-				Utils.joinProgramArray(
+				ShaderUtils.joinProgramArray(
 					[
 						'm44 vt0, va0, vc0',
 						'mov op, vt0',
@@ -313,7 +314,7 @@ package starling.extensions.deferredShading.lights
 			// fc14 - [screenWidth, screenHeight, 0, 0]
 			
 			var fragmentProgramCode:String =
-				Utils.joinProgramArray(
+				ShaderUtils.joinProgramArray(
 					[
 						// Unpack screen coords to [0, 1] by
 						// multiplying by 0.5 and then adding 0.5						
@@ -449,7 +450,7 @@ package starling.extensions.deferredShading.lights
 			// Register point light program with shadows			
 			
 			var shadowsCode:String =
-				Utils.joinProgramArray(
+				ShaderUtils.joinProgramArray(
 					[
 						/*--------------------------
 						Render shadows
@@ -607,7 +608,7 @@ package starling.extensions.deferredShading.lights
 			// Register shadowmap program
 			
 			vertexProgramCode = 
-				Utils.joinProgramArray(
+				ShaderUtils.joinProgramArray(
 					[						
 						// Pass along unpacked screen cords
 						'mov v0, va0',						
@@ -622,7 +623,7 @@ package starling.extensions.deferredShading.lights
 			// fc3 - [boundsHeightPx, vCurrentBlockOffset, lightRadius, halfFragment]
 			
 			fragmentProgramCode =
-				Utils.joinProgramArray(
+				ShaderUtils.joinProgramArray(
 					[					
 						// Calculate theta (θ)
 						// float theta = PI * 1.5 + u * PI; (u here is unpacked one, directly from varying)
@@ -671,7 +672,7 @@ package starling.extensions.deferredShading.lights
 				// ft6.x - currY
 				
 				loopCode +=
-					Utils.joinProgramArray(
+					ShaderUtils.joinProgramArray(
 						[		
 							// currU = currY / bounds.height
 							'div ft0.y, ft6.x, fc3.z',

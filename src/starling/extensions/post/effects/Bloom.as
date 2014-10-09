@@ -8,7 +8,7 @@ package starling.extensions.post.effects
 	import flash.display3D.Program3D;
 	
 	import starling.core.Starling;
-	import starling.extensions.deferredShading.Utils;
+	import starling.extensions.utils.ShaderUtils;
 	import starling.textures.Texture;
 
 	public class Bloom extends BlurBase
@@ -163,12 +163,12 @@ package starling.extensions.post.effects
 			
 			if(!Starling.current.getProgram(THRESHOLD))
 			{
-				thresholdProgram = Starling.current.registerProgramFromSource(THRESHOLD, THRESHOLD_VERTEX_SHADER, THRESHOLD_FRAGMENT_SHADER, 2);
+				thresholdProgram = ShaderUtils.registerProgram(THRESHOLD, THRESHOLD_VERTEX_SHADER, THRESHOLD_FRAGMENT_SHADER, 2);
 			}
 			
 			if(!Starling.current.getProgram(BLOOM))
 			{
-				bloomProgram = Starling.current.registerProgramFromSource(BLOOM, BLOOM_VERTEX_SHADER, BLOOM_FRAGMENT_SHADER, 1);
+				bloomProgram = ShaderUtils.registerProgram(BLOOM, BLOOM_VERTEX_SHADER, BLOOM_FRAGMENT_SHADER, 1);
 			}
 			
 			dispose();
@@ -186,7 +186,7 @@ package starling.extensions.post.effects
 		---------------------------*/		
 		
 		protected const BLOOM_VERTEX_SHADER:String = 			
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Move UV coords to varying-0
 					"mov v0, va1",
@@ -199,7 +199,7 @@ package starling.extensions.post.effects
 		 * Combines previously rendered maps.
 		 */
 		protected const BLOOM_FRAGMENT_SHADER:String =
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Sample regular scene
 					//"tex ft0, v0, fs0 <2d,clamp,linear>",			
@@ -230,7 +230,7 @@ package starling.extensions.post.effects
 		---------------------------*/
 		
 		protected const THRESHOLD_VERTEX_SHADER:String = 			
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Move UV coords to varying-0
 					"mov v0, va1",
@@ -243,7 +243,7 @@ package starling.extensions.post.effects
 		 * Combines previously rendered maps.
 		 */
 		protected const THRESHOLD_FRAGMENT_SHADER:String =
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Formula: saturate((Color – Threshold) / (1 – Threshold))
 					"tex ft0, v0, fs0 <2d,clamp,linear>",

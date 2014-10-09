@@ -15,7 +15,7 @@ package starling.extensions.deferredShading.debug
 	import starling.display.DisplayObject;
 	import starling.errors.MissingContextError;
 	import starling.events.Event;
-	import starling.extensions.deferredShading.Utils;
+	import starling.extensions.utils.ShaderUtils;
 	import starling.textures.Texture;
 	import starling.utils.VertexData;
 	
@@ -193,7 +193,7 @@ package starling.extensions.deferredShading.debug
 			if (target.hasProgram(PROGRAM_NAME)) return; // already registered
 			
 			var vertexProgramCode:String =
-				Utils.joinProgramArray(
+				ShaderUtils.joinProgramArray(
 					[
 						'm44 op, va0, vc0', // 4x4 matrix transform to output space
 						'mov v0, va1'
@@ -201,7 +201,7 @@ package starling.extensions.deferredShading.debug
 				);
 			
 			var fragmentProgramCode:String =
-				Utils.joinProgramArray(
+				ShaderUtils.joinProgramArray(
 					[
 						'tex ft0, v0, fs0 <2d, clamp, linear, mipnone>',
 						'mov ft0.w, fc0.w',
@@ -210,7 +210,7 @@ package starling.extensions.deferredShading.debug
 				);
 			
 			var fragmentProgramCodeChannelR:String =
-				Utils.joinProgramArray(
+				ShaderUtils.joinProgramArray(
 					[
 						'tex ft0, v0, fs0 <2d, clamp, linear, mipnone>',
 						'mov ft0.yz, ft0.xx',
@@ -220,7 +220,7 @@ package starling.extensions.deferredShading.debug
 				);
 			
 			var fragmentProgramCodeChannelA:String =
-				Utils.joinProgramArray(
+				ShaderUtils.joinProgramArray(
 					[
 						'tex ft0, v0, fs0 <2d, clamp, linear, mipnone>',
 						'mov ft0.xyz, ft0.www',

@@ -7,7 +7,8 @@ package starling.extensions.post.effects
 	import flash.display3D.Program3D;
 	
 	import starling.core.Starling;
-	import starling.extensions.deferredShading.Utils;
+	import starling.extensions.deferredShading.RenderPass;
+	import starling.extensions.utils.ShaderUtils;
 	import starling.textures.Texture;
 
 	/**
@@ -79,7 +80,8 @@ package starling.extensions.post.effects
 			
 			if(!Starling.current.getProgram(WIDE_BLUR))
 			{
-				wideBlurProgram = Starling.current.registerProgramFromSource(WIDE_BLUR, WIDE_BLUR_VERTEX_SHADER, WIDE_BLUR_FRAGMENT_SHADER, 2);
+				wideBlurProgram = ShaderUtils.registerProgram(WIDE_BLUR, WIDE_BLUR_VERTEX_SHADER, WIDE_BLUR_FRAGMENT_SHADER, 2);
+				
 			}
 			else
 			{
@@ -337,7 +339,7 @@ package starling.extensions.post.effects
 		---------------------------*/		
 		
 		protected const BLUR_VERTEX_SHADER:String = 			
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Add texture offsets, move to varyings
 					"add v0, va1, vc0",
@@ -354,7 +356,7 @@ package starling.extensions.post.effects
 			);
 		
 		protected const BLUR_FRAGMENT_SHADER:String =
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Apply convolution kernel
 					
@@ -391,7 +393,7 @@ package starling.extensions.post.effects
 		---------------------------*/		
 		
 		protected const WIDE_BLUR_VERTEX_SHADER:String = 			
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Add texture offsets, move to varyings
 					"add v0, va1, vc0",
@@ -410,7 +412,7 @@ package starling.extensions.post.effects
 			);
 		
 		protected const WIDE_BLUR_FRAGMENT_SHADER:String =
-			Utils.joinProgramArray(
+			ShaderUtils.joinProgramArray(
 				[					
 					// Apply convolution kernel
 					
