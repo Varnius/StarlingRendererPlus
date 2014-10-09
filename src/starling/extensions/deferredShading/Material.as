@@ -31,7 +31,5 @@ package starling.extensions.deferredShading
 		{
 			return diffuse.height;
 		}
-		
-		public var id:String;
 	}
 }
