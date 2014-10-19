@@ -256,7 +256,7 @@ package starling.extensions.deferredShading.display
 			
 			support.clear();
 			super.render(support, parentAlpha);
-			support.finishQuadBatch();
+			support.finishQuadBatch();			
 			
 			/*----------------------------------
 			Shadows - occluder pass
@@ -354,7 +354,7 @@ package starling.extensions.deferredShading.display
 				{
 					tmpRenderTargets.length = 0;
 					tmpRenderTargets.push(pointLight.shadowMap, null, null);					
-					support.setRenderTargets(tmpRenderTargets, true);
+					support.setRenderTargets(tmpRenderTargets, 0, true);
 					context.clear(0.0, 0.0, 0.0, 1.0, 1.0);
 					context.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO);
 					context.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
@@ -401,7 +401,7 @@ package starling.extensions.deferredShading.display
 				{
 					pointLight = l as PointLight;
 					
-					if(pointLight)
+					if(pointLight && pointLight.stage) // todo: check
 					{
 						if(pointLight.castsShadows)
 						{

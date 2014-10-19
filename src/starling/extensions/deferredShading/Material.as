@@ -1,6 +1,8 @@
 package starling.extensions.deferredShading
 {
 	import starling.textures.Texture;
+	import starling.utils.VertexData;
+	import flash.geom.Rectangle;
 	
 	public class Material extends Texture
 	{
@@ -22,6 +24,10 @@ package starling.extensions.deferredShading
 			//this.specular = specular;
 		}
 		
+		/*-----------------------
+		Overrides
+		-----------------------*/
+		
 		override public function get width():Number
 		{
 			return diffuse.width;
@@ -31,5 +37,21 @@ package starling.extensions.deferredShading
 		{
 			return diffuse.height;
 		}
+		
+		/** @inheritDoc */
+		override public function adjustVertexData(vertexData:VertexData, vertexID:int, count:int):void
+		{
+			diffuse.adjustVertexData(vertexData, vertexID, count);
+		}
+		
+		/** @inheritDoc */
+		override public function adjustTexCoords(texCoords:Vector.<Number>,
+												 startIndex:int=0, stride:int=0, count:int=-1):void
+		{
+			diffuse.adjustTexCoords(texCoords, startIndex, stride, count);
+		}
+		
+		/** @inheritDoc */
+		override public function get frame():Rectangle { return diffuse.frame; }
 	}
 }

@@ -36,7 +36,6 @@ package starling.extensions.deferredShading.display
 	import starling.extensions.utils.ShaderUtils;
 	import starling.textures.Texture;
 	import starling.textures.TextureSmoothing;
-	import starling.utils.MatrixUtil;
 	import starling.utils.VertexData;
 	
 	use namespace starling_internal;
@@ -87,7 +86,6 @@ package starling.extensions.deferredShading.display
 		/** Helper objects. */
 		private static var sHelperMatrix:Matrix = new Matrix();
 		private static var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
-		private static var sRenderMatrix:Matrix3D = new Matrix3D();
 		private static var sProgramNameCache:Dictionary = new Dictionary();
 		
 		// Deferred shading
@@ -213,7 +211,7 @@ package starling.extensions.deferredShading.display
 		/** Renders the current batch with custom settings for model-view-projection matrix, alpha 
 		 *  and blend mode. This makes it possible to render batches that are not part of the 
 		 *  display list. */ 
-		override public function renderCustom(mvpMatrix:Matrix, parentAlpha:Number=1.0,
+		override public function renderCustom(mvpMatrix:Matrix3D, parentAlpha:Number=1.0,
 											  blendMode:String=null):void
 		{
 			if (mNumQuads == 0) return;
@@ -228,12 +226,11 @@ package starling.extensions.deferredShading.display
 			sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = pma ? parentAlpha : 1.0;
 			sRenderAlpha[3] = parentAlpha;
 			
-			MatrixUtil.convertTo3D(mvpMatrix, sRenderMatrix);
 			RenderSupport.setBlendFactors(pma, blendMode ? blendMode : this.blendMode);
 			
 			context.setProgram(getProgram(tinted, currPass));
 			context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 0, sRenderAlpha, 1);
-			context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, sRenderMatrix, true);
+			context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 1, mvpMatrix, true);
 			
 			// Set program constants for deferred pass
 			
@@ -261,10 +258,9 @@ package starling.extensions.deferredShading.display
 					var specPower:Number;
 					var specIntensity:Number;					
 					var normalMapPresent:Boolean;
-					var depthMapPresent:Boolean;
-					var propsPresent:Boolean = mTexture is Material;					
+					var depthMapPresent:Boolean;				
 					
-					if(propsPresent)
+					if(material)
 					{
 						normalMapPresent = material.normal;
 						depthMapPresent = material.depth;
@@ -277,7 +273,7 @@ package starling.extensions.deferredShading.display
 					
 					// Set specular params constants, fc5
 					
-					if(propsPresent)
+					if(material)
 					{
 						specularParams[0] = material.specularPower;					
 						specularParams[1] = material.specularIntensity;
@@ -438,20 +434,28 @@ package starling.extensions.deferredShading.display
 		}
 		
 		private function isSameMaterial(texture:Texture):Boolean
-		{
-			var mNew:Material = texture as Material;
-			var mOld:Material = mTexture as Material;
-			var diffuseDiffer:Boolean = mNew.diffuse.base != mOld.diffuse.base;
-			
-			var normalA:Texture = mNew.normal ? mNew.normal : DeferredShadingContainer.defaultNormalMap;
-			var normalB:Texture = mOld.normal ? mOld.normal : DeferredShadingContainer.defaultNormalMap;
-			var normalDiffer:Boolean = normalA.base != normalB.base;
-			
-			var depthA:Texture = mNew.depth ? mNew.depth : DeferredShadingContainer.defaultDepthMap;
-			var depthB:Texture = mOld.depth ? mOld.depth : DeferredShadingContainer.defaultDepthMap;
-			var depthDiffer:Boolean = depthA.base != depthB.base;
-
-			return !diffuseDiffer && !normalDiffer && !depthDiffer;
+		{		
+			if(texture is Material)
+			{
+				var mNew:Material = texture as Material;
+				var mOld:Material = mTexture as Material;
+				
+				var diffuseDiffer:Boolean = mNew.diffuse.base != mOld.diffuse.base;
+				
+				var normalA:Texture = mNew.normal ? mNew.normal : DeferredShadingContainer.defaultNormalMap;
+				var normalB:Texture = mOld.normal ? mOld.normal : DeferredShadingContainer.defaultNormalMap;
+				var normalDiffer:Boolean = normalA.base != normalB.base;
+				
+				var depthA:Texture = mNew.depth ? mNew.depth : DeferredShadingContainer.defaultDepthMap;
+				var depthB:Texture = mOld.depth ? mOld.depth : DeferredShadingContainer.defaultDepthMap;
+				var depthDiffer:Boolean = depthA.base != depthB.base;
+				
+				return !diffuseDiffer && !normalDiffer && !depthDiffer;
+			}
+			else
+			{
+				return mTexture == texture;
+			}	
 		}
 		
 		// utility methods for manual vertex-modification
@@ -552,7 +556,7 @@ package starling.extensions.deferredShading.display
 				{
 					support.finishQuadBatch();
 					support.raiseDrawCount();
-					renderCustom(support.mvpMatrix, alpha * parentAlpha, support.blendMode);
+					renderCustom(support.mvpMatrix3D, alpha * parentAlpha, support.blendMode);
 				}
 			}
 		}

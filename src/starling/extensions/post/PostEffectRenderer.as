@@ -4,6 +4,7 @@ package starling.extensions.post
 	
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DBlendFactor;
+	import flash.display3D.Context3DProgramType;
 	import flash.display3D.Context3DTextureFormat;
 	import flash.display3D.Context3DVertexBufferFormat;
 	import flash.display3D.IndexBuffer3D;
@@ -14,13 +15,13 @@ package starling.extensions.post
 	import starling.core.Starling;
 	import starling.display.Sprite;
 	import starling.events.Event;
-	import starling.extensions.utils.ShaderUtils;
 	import starling.extensions.post.effects.PostEffect;
+	import starling.extensions.utils.ShaderUtils;
 	import starling.textures.Texture;
 
 	public class PostEffectRenderer extends Sprite
 	{
-		public var assembler:AGALMiniAssembler = new AGALMiniAssembler();
+		private static const POST_EFFECT_RENDERER_PROGRAM:String = 'PostEffectRendererProgram';		
 		
 		// Quad
 		
@@ -35,10 +36,6 @@ package starling.extensions.post
 			
 		private var mostRecentRender:Texture;
 		private var renderTarget:Texture;
-		
-		// Compiled programs
-		
-		private var combinedResultProgram:Program3D;
 		
 		// Misc		
 		
@@ -111,7 +108,7 @@ package starling.extensions.post
 			
 			if(_customRenderer)
 			{
-				_customRenderer(this, context, outputs);
+				_customRenderer(this, context, outputs, support);
 			}
 			else
 			{			
@@ -121,7 +118,7 @@ package starling.extensions.post
 					context.setVertexBufferAt(1, overlayVertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_2);                      
 					context.setTextureAt(0, o.base);
 					
-					context.setProgram(combinedResultProgram);			
+					context.setProgram(Starling.current.getProgram(POST_EFFECT_RENDERER_PROGRAM));			
 					
 					if(outputs.indexOf(o) == 0) 
 						context.setBlendFactors(Context3DBlendFactor.SOURCE_ALPHA, Context3DBlendFactor.ONE_MINUS_SOURCE_ALPHA); 
@@ -141,7 +138,8 @@ package starling.extensions.post
 		
 		private function prepare():void
 		{
-			var context:Context3D = Starling.context;
+			var context:Context3D = Starling.current.context;
+			var target:Starling = Starling.current;
 			var w:Number = Starling.current.nativeStage.stageWidth;
 			var h:Number = Starling.current.nativeStage.stageHeight;			
 			
@@ -165,7 +163,17 @@ package starling.extensions.post
 			
 			// Create programs
 			
-			combinedResultProgram = assembler.assemble2(context, 2, VERTEX_SHADER, FRAGMENT_SHADER);
+			if(target.hasProgram(POST_EFFECT_RENDERER_PROGRAM))
+			{
+				return;	
+			}
+			
+			var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
+			vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, VERTEX_SHADER, 2);			
+			var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
+			fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, FRAGMENT_SHADER, 2);			
+			Starling.current.registerProgram(POST_EFFECT_RENDERER_PROGRAM, vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+			
 			prepared = true;
 		}
 		
@@ -176,7 +184,6 @@ package starling.extensions.post
 			scene.dispose();
 			overlayIndexBuffer.dispose();
 			overlayVertexBuffer.dispose();
-			combinedResultProgram.dispose();
 			
 			for each(var e:PostEffect in _effects)
 			{

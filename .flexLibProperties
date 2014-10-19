@@ -3,6 +3,7 @@
   <includeClasses>
     <classEntry path="starling.extensions.deferredShading.Material"/>
     <classEntry path="starling.extensions.deferredShading.display.SpritePlus"/>
+    <classEntry path="starling.filters.VoronoiNoise"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
