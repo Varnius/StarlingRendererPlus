@@ -19,9 +19,10 @@ package starling.extensions.deferredShading.display
 	import starling.events.Event;
 	import starling.extensions.deferredShading.RenderPass;
 	import starling.extensions.deferredShading.renderer_internal;
+	import starling.extensions.deferredShading.interfaces.IAreaLight;
+	import starling.extensions.deferredShading.interfaces.IShadowMappedLight;
 	import starling.extensions.deferredShading.lights.AmbientLight;
 	import starling.extensions.deferredShading.lights.Light;
-	import starling.extensions.deferredShading.lights.PointLight;
 	import starling.textures.Texture;
 	import starling.utils.Color;
 	
@@ -39,6 +40,9 @@ package starling.extensions.deferredShading.display
 		public static var defaultNormalMap:Texture;
 		public static var defaultDepthMap:Texture;		
 		public static var defaultSpecularMap:Texture;
+		
+		// TODO: may need to change that to take the advantage of upcoming AGAL 3.0
+		public static const OPCODE_LIMIT:int = 1024;
 		
 		// Quad
 		
@@ -311,7 +315,7 @@ package starling.extensions.deferredShading.display
 						support.transformMatrix(obj);
 					}
 					
-					// Tint quads/images with black
+					// Tint quads/images black
 					// Custom display objects should check if support.renderPass == RenderPass.OCCLUDERS
 					// in their render method and render tinted version of an object.
 					
@@ -337,35 +341,30 @@ package starling.extensions.deferredShading.display
 			Shadows - shadowmap pass
 			----------------------------------*/
 			
-			// Max shadow limit is height of shadowmap texture (currently 256)
-			
 			renderPass = RenderPass.SHADOWMAP;
 			
 			for each(l in visibleLights)
-			{				
-				if(!l.castsShadows)
+			{		
+				var shadowMappedLight:IShadowMappedLight = l as IShadowMappedLight;
+				
+				if(!shadowMappedLight || (shadowMappedLight && !shadowMappedLight.castsShadows))
 				{
 					continue;
-				}
+				}			
 				
-				var pointLight:PointLight = l as PointLight;
+				tmpRenderTargets.length = 0;
+				tmpRenderTargets.push(shadowMappedLight.shadowMap, null, null);					
+				support.setRenderTargets(tmpRenderTargets, 0, true);
+				context.clear(0.0, 0.0, 0.0, 1.0, 1.0);
+				context.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO);
+				context.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
 				
-				if(pointLight)
-				{
-					tmpRenderTargets.length = 0;
-					tmpRenderTargets.push(pointLight.shadowMap, null, null);					
-					support.setRenderTargets(tmpRenderTargets, 0, true);
-					context.clear(0.0, 0.0, 0.0, 1.0, 1.0);
-					context.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO);
-					context.setDepthTest(true, Context3DCompareMode.LESS_EQUAL);
-					
-					l.renderShadowMap(
-						support, 
-						occludersRT,
-						overlayVertexBuffer,
-						overlayIndexBuffer
-					);
-				}				
+				shadowMappedLight.renderShadowMap(
+					support, 
+					occludersRT,
+					overlayVertexBuffer,
+					overlayIndexBuffer
+				);
 			}
 			
 			context.setDepthTest(false, Context3DCompareMode.ALWAYS);	
@@ -399,13 +398,14 @@ package starling.extensions.deferredShading.display
 				
 				for each(l in visibleLights)
 				{
-					pointLight = l as PointLight;
+					var areaLight:IAreaLight = l as IAreaLight;
+					shadowMappedLight = l as IShadowMappedLight;
 					
-					if(pointLight && pointLight.stage) // todo: check
+					if(areaLight && l.stage) // todo: check
 					{
-						if(pointLight.castsShadows)
+						if(shadowMappedLight && shadowMappedLight.castsShadows)
 						{
-							context.setTextureAt(2, pointLight.shadowMap.base);
+							context.setTextureAt(2, shadowMappedLight.shadowMap.base);
 							context.setTextureAt(3, occludersRT.base);
 						}						
 						
@@ -428,7 +428,7 @@ package starling.extensions.deferredShading.display
 						
 						l.render(support, parentAlpha);
 						
-						if(pointLight.castsShadows)
+						if(shadowMappedLight && shadowMappedLight.castsShadows)
 						{
 							context.setTextureAt(2, null);
 							context.setTextureAt(3, null);
