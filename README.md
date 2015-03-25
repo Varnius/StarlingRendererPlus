@@ -20,6 +20,8 @@ Library contents:
  * Bloom
  * Anamorphic Flares
  
+<b>Note: using filters/stencil masks on elements inside DeferredShadingContainer (or container itself) is currently not supported.</b> 
+ 
 <a href="http://nekobit.eu/demos/starling-deferred/Sandbox.html" target="_blank">Online Demo</a> (project can be found [here](https://github.com/Varnius/StarlingDynamicShadows2D))
 
 <a href="http://nekobit.eu/demos/starling-deferred/Sandbox.html" target="_blank"><img src="http://nekobit.eu/screens/deferred.jpg" alt="" /></a>
