@@ -2,6 +2,7 @@
 bin-debug/
 bin-release/
 starling/doc/html/
+bin/*.*
 
 # Project property files
 .settings/
