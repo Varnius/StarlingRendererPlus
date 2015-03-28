@@ -374,8 +374,7 @@ package starling.extensions.deferredShading.lights
 						// -- Use fake 3D light position with normal map
 						
 						// Set ft15 to light position (with fake height)
-						'mov ft15.xy, fc1.xy',
-						'mov ft15.z, fc14.x',
+						'mov ft15.xyz, fc1.xyz',
 						
 						//vec3 lightDirection = normalize(uPointLightingLocation - vPosition.xyz);
 						'sub ft16.xyz, ft15.xyz, ft21.xyz',
