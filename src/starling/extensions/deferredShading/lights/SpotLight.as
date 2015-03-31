@@ -441,7 +441,8 @@ package starling.extensions.deferredShading.lights
 						
 						// Sample normals to ft1
 						
-						'tex ft1, ft0.xy, fs0 <2d, clamp, linear, mipnone>',						
+						'tex ft1, ft0.xy, fs0 <2d, clamp, linear, mipnone>',
+						'sub ft1.y, fc0.y, ft1.y ', // y-axis should increase downwards
 						
 						// Then unpack normals from [0, 1] to [-1, 1]
 						// by multiplying by 2 and then subtracting 1
