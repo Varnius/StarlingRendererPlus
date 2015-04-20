@@ -94,6 +94,7 @@ package starling.extensions.deferredShading.display
 		private var deferredQuadSpecularParams:Vector.<Number> = new <Number>[Material.DEFAULT_SPECULAR_POWER, Material.DEFAULT_SPECULAR_INTENSITY, 1.0, 0.0];
 		private var specularParams:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
 		private var constants:Vector.<Number> = new <Number>[1.0, 0.0, 0.0, 0.0];
+		private var constants2:Vector.<Number> = new <Number>[0.01, 0.0, 0.0, 0.0];
 		
 		/** Creates a new QuadBatch instance with empty batch data. */
 		public function QuadBatchPlus()
@@ -286,6 +287,7 @@ package starling.extensions.deferredShading.display
 					
 					context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 5, specularParams, 1);
 					context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 6, constants, 1);
+					context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 7, constants2, 1);
 					
 					// Set samplers	
 					
@@ -777,10 +779,11 @@ package starling.extensions.deferredShading.display
 				'mov ft3.y, fc5.x',
 				'mov ft3.z, fc5.y',
 				
-				// Mask normal/depth maps by diffuse map alpha
+				// Mask normal/depth maps by diffuse map alpha (multiply by 0 if alpha is less than threshold specified by fc7.x)
 				// This is useful when user just passes rectangular single-color
-				// normal map and wants to use it for the area covered by diffuse color
-				'mul ft4, ft4, ft1.w',
+				// normal map and wants to use it for the area covered by diffuse color,
+				'sge ft7.x, ft1.w, fc7.x',
+				'mul ft4, ft4, ft7.x',
 				'mov oc1, ft4',
 				'mul ft3, ft3, ft1.w',
 				

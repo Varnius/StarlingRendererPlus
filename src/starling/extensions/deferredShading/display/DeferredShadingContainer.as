@@ -6,7 +6,9 @@ package starling.extensions.deferredShading.display
 	import flash.display3D.Context3D;
 	import flash.display3D.Context3DBlendFactor;
 	import flash.display3D.Context3DCompareMode;
+	import flash.display3D.Context3DProgramType;
 	import flash.display3D.Context3DTextureFormat;
+	import flash.display3D.Context3DVertexBufferFormat;
 	import flash.display3D.IndexBuffer3D;
 	import flash.display3D.VertexBuffer3D;
 	import flash.geom.Rectangle;
@@ -23,6 +25,7 @@ package starling.extensions.deferredShading.display
 	import starling.extensions.deferredShading.interfaces.IShadowMappedLight;
 	import starling.extensions.deferredShading.lights.AmbientLight;
 	import starling.extensions.deferredShading.lights.Light;
+	import starling.extensions.utils.ShaderUtils;
 	import starling.textures.Texture;
 	import starling.utils.Color;
 	
@@ -34,9 +37,11 @@ package starling.extensions.deferredShading.display
 	 */
 	public class DeferredShadingContainer extends Sprite
 	{		
+		private static const AMBIENT_PROGRAM:String = 'AmbientProgram';
+		
 		protected var assembler:AGALMiniAssembler = new AGALMiniAssembler();
 		
-		private static const DEFAULT_AMBIENT:AmbientLight = new AmbientLight(0x000000, 1.0)
+		private static const DEFAULT_AMBIENT:AmbientLight = new AmbientLight(0x000000)
 		public static var defaultNormalMap:Texture;
 		public static var defaultDepthMap:Texture;		
 		public static var defaultSpecularMap:Texture;
@@ -50,6 +55,10 @@ package starling.extensions.deferredShading.display
 		protected var overlayIndexBuffer:IndexBuffer3D;
 		protected var vertices:Vector.<Number> = new <Number>[-1, 1, 0, 0, 0, -1, -1, 0, 0, 1, 1,  1, 0, 1, 0, 1, -1, 0, 1, 1];
 		protected var indices:Vector.<uint> = new <uint>[0,1,2,2,1,3];
+		
+		// Program constants
+		
+		private var ambient:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 1.0];
 		
 		public static var renderPass:String = RenderPass.NORMAL;
 		
@@ -89,6 +98,7 @@ package starling.extensions.deferredShading.display
 		public function DeferredShadingContainer()
 		{
 			prepare();
+			registerPrograms();
 			
 			// Handle lost context			
 			Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
@@ -98,20 +108,29 @@ package starling.extensions.deferredShading.display
 		Public methods
 		---------------------------*/
 		
-		/**
-		 * Adds light. Only lights added to the container this way will be rendered.
-		 */
-		public function addLight(light:Light):void
+		override public function addChildAt(child:DisplayObject, index:int):DisplayObject
 		{
-			lights.push(light);
+			if(child is Light)
+			{
+				lights.push(child as Light);
+			}
+			
+			return super.addChildAt(child, index);
 		}
 		
-		/**
-		 * Removes light, so it won`t be rendered.
-		 */
-		public function removeLight(light:Light):void
+		override public function removeChildAt(index:int, dispose:Boolean=false):DisplayObject
 		{
-			lights.splice(lights.indexOf(light), 1);
+			if(index >= 0 && index < numChildren)
+			{
+				var child:DisplayObject = getChildAt(index);
+			}
+			
+			if(child is Light)
+			{
+				lights.splice(lights.indexOf(child as Light), 1);
+			}
+			
+			return super.removeChildAt(index, dispose);
 		}
 		
 		/**
@@ -195,6 +214,44 @@ package starling.extensions.deferredShading.display
 			prepared = true;
 		}
 		
+		private function registerPrograms():void
+		{
+			var target:Starling = Starling.current;
+			
+			if(target.hasProgram(AMBIENT_PROGRAM))
+			{
+				return;
+			}						
+			
+			var vertexProgramCode:String = 
+				ShaderUtils.joinProgramArray(
+					[
+						'mov op, va0',
+						'mov v0, va1'
+					]
+				);		
+			
+			// fc0 - ambient color [r, g, b, 1.0]
+			
+			var fragmentProgramCode:String =
+				ShaderUtils.joinProgramArray(
+					[						
+						'tex ft1, v0.xy, fs4 <2d, clamp, linear, mipnone>',
+						'mov ft1.w, fc0.w',
+						'mul oc, ft1, fc0',
+					]
+				);
+			
+			var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
+			vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, 1);
+			
+			var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
+			fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode, 1);
+			
+			target.registerProgram(AMBIENT_PROGRAM, vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
+		}
+						
+	
 		override public function render(support:RenderSupport, parentAlpha:Number):void
 		{
 			var obj:DisplayObject;
@@ -379,10 +436,8 @@ package starling.extensions.deferredShading.display
 			{				
 				renderPass = RenderPass.LIGHTS;		
 				
-				// Set previously rendered maps
+				// Bind textures required by ambient light
 				
-				context.setTextureAt(0, normalsRT.base);
-				context.setTextureAt(1, depthRT.base);
 				context.setTextureAt(4, diffuseRT.base);
 				
 				// Clear RT with ambient light color
@@ -392,16 +447,37 @@ package starling.extensions.deferredShading.display
 					ambientLight = DEFAULT_AMBIENT;
 				}
 				
-				support.clear(ambientLight.color, 1.0);
+				support.clear(0x000000, 1.0);
 				context.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ONE);
 				support.pushMatrix();
+				
+				// Render ambient light as full-screen quad
+				
+				ambient[0] = ambientLight._colorR;
+				ambient[1] = ambientLight._colorG;
+				ambient[2] = ambientLight._colorB;
+				
+				context.setVertexBufferAt(0, overlayVertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
+				context.setVertexBufferAt(1, overlayVertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_2);
+				context.setProgram(Starling.current.getProgram(AMBIENT_PROGRAM));
+				context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, ambient, 1);			
+				context.drawTriangles(overlayIndexBuffer);
+				
+				context.setVertexBufferAt(1, null);
+				
+				// Bind textures required by other types lights
+				
+				context.setTextureAt(0, normalsRT.base);
+				context.setTextureAt(1, depthRT.base);
+				
+				// Render other lights
 				
 				for each(l in visibleLights)
 				{
 					var areaLight:IAreaLight = l as IAreaLight;
 					shadowMappedLight = l as IShadowMappedLight;
 					
-					if(areaLight && l.stage) // todo: check
+					if(areaLight && l.stage)
 					{
 						if(shadowMappedLight && shadowMappedLight.castsShadows)
 						{
@@ -456,6 +532,7 @@ package starling.extensions.deferredShading.display
 		{
 			prepared = false;
 			prepare();
+			registerPrograms();
 		}
 	}
 }

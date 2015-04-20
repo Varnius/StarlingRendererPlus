@@ -13,9 +13,9 @@ package starling.extensions.deferredShading.lights
 	{
 		private var bounds:Rectangle = new Rectangle();
 		
-		public function AmbientLight(color:uint, strength:Number)
+		public function AmbientLight(color:uint)
 		{
-			super(color, strength);
+			super(color);
 		}
 		
 		override public function render(support:RenderSupport, parentAlpha:Number):void

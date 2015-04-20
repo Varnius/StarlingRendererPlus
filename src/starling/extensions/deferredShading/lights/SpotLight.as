@@ -413,7 +413,7 @@ package starling.extensions.deferredShading.lights
 				);		
 			
 			// fc0 - constants [0.5, 1, 2, 0]
-			// fc1 - light position in eye coordinates [x, y, z (fake), 0]
+			// fc1 - light position in eye coordinates, screen width/height [x, y, z (fake), 0]
 			// fc2 - light properties [radius, strength, 1 / radius, radius^2]
 			// fc3 - light color [r, g, b, 0]
 			// fc4 - halfVec [0, 0, 1, 0]
@@ -465,46 +465,43 @@ package starling.extensions.deferredShading.lights
 						// Calculate pixel position in eye space
 						
 						'mul ft3.xyxy, ft0.xyxy, fc14.xyxy',
-						'mov ft21.xy, ft3.xy', // save for shadow calculations
-						'mov ft21.z, fc0.w',
+						'mov ft3.z, fc0.w',
+						'mov ft21.xyz, ft3.xyz', // save for shadow calculations
 						
-						// float3 lightDirection = lightPosition - pixelPosition;
-						'sub ft3.xy, fc1.xy, ft3.xy',
-						'mov ft3.zw, fc0.ww',
+						/*-----------------------
+						Calculate coincidence 
+						between light and surface 
+						normal
+						-----------------------*/
 						
-						// Save length(lightDirection) to ft7.x for later
-						'pow ft7.x, ft3.x, fc0.z',
-						'pow ft7.y, ft3.y, fc0.z',
-						'add ft7.x, ft7.x, ft7.y',
-						'sqt ft7.x, ft7.x',
-						'div ft20.x, ft7.x, fc2.x', // save for shadow calculations
+						// float3 lightDirection3D = lightPosition.xyz - pixelPosition.xyz;
+						// z(light) = positive float, z(pixel) = 0
+						'sub ft3.xyz, fc1.xyz, ft3.xyz',
+						'mov ft3.w, fc0.w',
 						
-						// float3 lightDirNorm = normalize(lightDirection);
-						'nrm ft4.xyz, ft3.xyz',
+						// Save length(lightDirection2D) to ft20.x for later shadow calculations
+						'pow ft20.x, ft3.x, fc0.z',
+						'pow ft20.y, ft3.y, fc0.z',
+						'add ft20.x, ft20.x, ft20.y',
+						'sqt ft20.x, ft20.x',
+						'div ft20.x, ft20.x, fc2.x',
+						
+						// float3 lightDirNorm = normalize(lightDirection3D);
+						'nrm ft7.xyz, ft3.xyz',
 						
 						// float amount = max(dot(normal, lightDirNorm), 0);
 						// Put it in ft5.x
-						'dp3 ft5.x, ft1.xyz, ft4.xyz',
-						'max ft5.x, ft5.x, fc0.w',							
+						'dp3 ft5.x, ft1.xyz, ft7.xyz',
+						'max ft5.x, ft5.x, fc0.w',			
 						
-						// -- Use fake 3D light position with normal map
-						
-						// Set ft15 to light position (with fake height)
-						'mov ft15.xyz, fc1.xyz',
-						
-						//vec3 lightDirection = normalize(uPointLightingLocation - vPosition.xyz);
-						'sub ft16.xyz, ft15.xyz, ft21.xyz',
-						'nrm ft16.xyz, ft16.xyz',						
-						
-						//float directionalLightWeighting = max(dot(normalize(vTransformedNormal), lightDirection), 0.0);
-						'dp3 ft17.x, ft1.xyz, ft16.xyz',
-						'max ft17.x, ft17.x, fc0.w',
-						
-						// -- fake 3D end
+						/*-----------------------
+						Calculate attenuation
+						-----------------------*/
 						
 						// Linear attenuation
 						// http://blog.slindev.com/2011/01/10/natural-light-attenuation/
-						// Put it in ft5.y					
+						// Put it in ft5.y				
+						'mov ft3.z, fc0.w', // attenuation is calculated in 2D
 						'dp3 ft5.y, ft3.xyz, ft3.xyz',
 						'div ft5.y, ft5.y, fc2.w',
 						'mul ft5.y, ft5.y, fc5.x',
@@ -513,23 +510,27 @@ package starling.extensions.deferredShading.lights
 						'sub ft5.y, ft5.y, fc5.y',
 						'div ft5.y, ft5.y, fc5.z',
 						
-						// float3 reflect = normalize(2 * amount * normal - lightDirNorm);
-						// Won`t need saved normal anymore, save to ft1
-						'mul ft1.xyz, ft1.xyz, fc0.z',
-						'mul ft1.xyz, ft1.xyz, ft5.x',
-						'sub ft1.xyz, ft1.xyz, ft4.xyz',
-						'nrm ft1.xyz, ft1.xyz',
+						/*-----------------------
+						Calculate specular
+						-----------------------*/
 						
-						// float specular = min(pow(saturate(dot(reflect, halfVec)), specularPower), amount);
-						// Put it in ft5.z
-						'dp3 ft5.z, ft1.xyz, fc4.xyz',
-						'sat ft5.z, ft5.z',
-						'pow ft5.z, ft5.z, ft0.z',
-						//'min ft5.z, ft5.z, ft5.x', ???
+						'neg ft7.xyz, ft7.xyz',
+						'dp3 ft6.x, ft7.xyz, ft1.xyz',
+						'mul ft6.xyz, ft6.xxx, fc0.z', //35
+						'mul ft6.xyz, ft6.xxx, ft1.xyz',
+						'sub ft6.xyz, ft7.xyz, ft6.xyz',
+						
+						'dp3 ft6.x, ft6.xyz, fc4.xyz',
+						'max ft6.x, ft6.x, fc0.w',
+						'pow ft5.z, ft6.x, ft0.z',
+						
+						/*-----------------------
+						Finalize
+						-----------------------*/
 						
 						// Output.Color = lightColor * coneAttenuation * lightStrength
 						'mul ft6.xyz, ft5.yyy, fc3.xyz',
-						'mul ft6.xyz, ft6.xyz, ft17.x',
+						'mul ft6.xyz, ft6.xyz, ft5.x',
 						
 						// + (coneAttenuation * specular * specularStrength)						
 						'mul ft7.x, ft5.y, ft5.z',
@@ -540,6 +541,7 @@ package starling.extensions.deferredShading.lights
 						// Those depend on the angle between current beam and center beam
 						
 						// Point dir vector
+						'nrm ft4.xyz, ft3.xyz',
 						'neg ft4.x, ft4.x',						
 						'dp3 ft12.x, ft4.xyz, fc15.xyz',					
 						
