@@ -743,7 +743,7 @@ package starling.extensions.deferredShading.display
 					);
 				}
 				
-				program = ShaderUtils.registerProgram(programName, vertexProgram, fragmentProgram, pass == RenderPass.MRT ? 2 : 1);
+				program = ShaderUtils.registerProgram(programName, vertexProgram, fragmentProgram, DeferredShadingContainer.AGAL_VERSION);
 			}
 			
 			return program;

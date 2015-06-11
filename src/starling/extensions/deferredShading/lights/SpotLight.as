@@ -575,10 +575,10 @@ package starling.extensions.deferredShading.lights
 				);
 			
 			var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-			vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, 2);
+			vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, DeferredShadingContainer.AGAL_VERSION);
 			
 			var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-			fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode.replace('<shadows>', ''), 2);
+			fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode.replace('<shadows>', ''), DeferredShadingContainer.AGAL_VERSION);
 			
 			target.registerProgram(SPOTLIGHT_PROGRAM, vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
 			
@@ -741,10 +741,10 @@ package starling.extensions.deferredShading.lights
 				);
 			
 			vertexProgramAssembler = new AGALMiniAssembler();
-			vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, 2);
+			vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, DeferredShadingContainer.AGAL_VERSION);
 			
 			fragmentProgramAssembler = new AGALMiniAssembler();
-			fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode.replace('<shadows>', shadowsCode), 2);
+			fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode.replace('<shadows>', shadowsCode), DeferredShadingContainer.AGAL_VERSION);
 			
 			target.registerProgram(SPOTLIGHT_PROGRAM_WITH_SHADOWS, vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
 			
@@ -852,10 +852,10 @@ package starling.extensions.deferredShading.lights
 			fragmentProgramCode = fragmentProgramCode.replace('<loop>', loopCode);
 			
 			vertexProgramAssembler = new AGALMiniAssembler();
-			vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, 2);
+			vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, DeferredShadingContainer.AGAL_VERSION);
 			
 			fragmentProgramAssembler = new AGALMiniAssembler();
-			fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode, 2);
+			fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode, DeferredShadingContainer.AGAL_VERSION);
 			
 			target.registerProgram(SHADOWMAP_PROGRAM, vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
 		}

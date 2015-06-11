@@ -46,8 +46,8 @@ package starling.extensions.deferredShading.display
 		public static var defaultDepthMap:Texture;		
 		public static var defaultSpecularMap:Texture;
 		
-		// TODO: may need to change that to take the advantage of upcoming AGAL 3.0
-		public static const OPCODE_LIMIT:int = 1024;
+		public static var OPCODE_LIMIT:int;
+		public static var AGAL_VERSION:int;
 		
 		// Quad
 		
@@ -97,6 +97,19 @@ package starling.extensions.deferredShading.display
 		 */
 		public function DeferredShadingContainer()
 		{
+			if(Starling.current.profile == 'standard')
+			{
+				OPCODE_LIMIT = 1024;
+				AGAL_VERSION = 2;
+			}
+			else if(Starling.current.profile == 'standardExtended') 
+			{
+				OPCODE_LIMIT = 2048;
+				AGAL_VERSION = 3;
+			}
+			else
+				trace('[StarlingRendererPlus] Current Stage3D profile is not supported by RendererPlus.');
+			
 			prepare();
 			registerPrograms();
 			
@@ -221,7 +234,7 @@ package starling.extensions.deferredShading.display
 			if(target.hasProgram(AMBIENT_PROGRAM))
 			{
 				return;
-			}						
+			}
 			
 			var vertexProgramCode:String = 
 				ShaderUtils.joinProgramArray(
@@ -250,8 +263,8 @@ package starling.extensions.deferredShading.display
 			
 			target.registerProgram(AMBIENT_PROGRAM, vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
 		}
-						
-	
+		
+		
 		override public function render(support:RenderSupport, parentAlpha:Number):void
 		{
 			var obj:DisplayObject;
