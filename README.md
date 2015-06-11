@@ -14,13 +14,15 @@ Library contents:
 
 * Deferred renderer which supports
  * Ambient and point lights
- * Spotlights (TODO)
+ * Spotlights
 * Pixel-perfect 2D shadow renderer
 * Post FX renderer, currently contains following effects:
  * Bloom
  * Anamorphic Flares
  
 <b>Note: using filters/stencil masks on elements inside DeferredShadingContainer (or container itself) is currently not supported.</b> 
+
+<b>Note 2: you may get "Native shader compilation error" while using STANDARD_EXTENDED. Probably the bug of Flash runtime.</b> 
  
 <a href="http://nekobit.eu/demos/starling-deferred/Sandbox.html" target="_blank">Online Demo</a> (project can be found [here](https://github.com/Varnius/StarlingDynamicShadows2D))
 
