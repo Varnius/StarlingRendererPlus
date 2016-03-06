@@ -1,9 +1,11 @@
 package starling.extensions.deferredShading.lights
 {
 	import flash.geom.Rectangle;
-	
-	import starling.core.RenderSupport;
 	import starling.display.DisplayObject;
+	import starling.rendering.IndexData;
+	import starling.rendering.MeshStyle;
+	import starling.rendering.Painter;
+	import starling.rendering.VertexData;
 
 	/**
 	 * Represents an even amount of light, added to each pixel on the screen.
@@ -11,21 +13,23 @@ package starling.extensions.deferredShading.lights
 	 */
 	public class AmbientLight extends Light
 	{
-		private var bounds:Rectangle = new Rectangle();
-		
-		public function AmbientLight(color:uint)
+		public function AmbientLight()
 		{
-			super(color);
+			var vertexData:VertexData = new VertexData(MeshStyle.VERTEX_FORMAT, 4);
+			var indexData:IndexData = new IndexData(6);
+
+			super(vertexData, indexData, null);
 		}
 		
-		override public function render(support:RenderSupport, parentAlpha:Number):void
+		override public function render(painter:Painter):void
 		{
 			// ..
 		}
 		
 		public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle=null):Rectangle
 		{
-			return bounds;
+			// TODO: refractor
+			return new Rectangle();
 		}
 	}
 }

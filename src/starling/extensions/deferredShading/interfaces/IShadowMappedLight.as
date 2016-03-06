@@ -2,9 +2,9 @@ package starling.extensions.deferredShading.interfaces
 {
 	import flash.display3D.IndexBuffer3D;
 	import flash.display3D.VertexBuffer3D;
-	
-	import starling.core.RenderSupport;
-	import starling.textures.Texture;
+
+import starling.rendering.Painter;
+import starling.textures.Texture;
 
 	public interface IShadowMappedLight
 	{
@@ -23,7 +23,7 @@ package starling.extensions.deferredShading.interfaces
 		 * Renders shadow map for the light.
 		 */
 		function renderShadowMap(
-			support:RenderSupport,
+			painter:Painter,
 			occluders:Texture,
 			vertexBuffer:VertexBuffer3D,
 			indexBuffer:IndexBuffer3D
