@@ -2,35 +2,13 @@ package starling.extensions.deferredShading.rendering
 {
     import starling.rendering.MeshEffect;
     import starling.rendering.MeshStyle;
-    import starling.rendering.RenderState;
     import starling.textures.Texture;
 
     public class PlusMeshStyle extends MeshStyle
     {
-        public function PlusMeshStyle()
-        {
-            super();
-        }
-
-        override public function copyFrom(meshStyle:MeshStyle):void
-        {
-            var plusMeshStyle:PlusMeshStyle = meshStyle as PlusMeshStyle;
-
-            // copy here
-
-            super.copyFrom(meshStyle);
-        }
-
         override public function createEffect():MeshEffect
         {
             return new PlusMeshEffect();
-        }
-
-        override public function updateEffect(effect:MeshEffect, state:RenderState):void
-        {
-            // ..
-
-            super.updateEffect(effect, state);
         }
 
         override public function canBatchWith(meshStyle:MeshStyle):Boolean

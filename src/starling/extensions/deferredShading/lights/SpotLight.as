@@ -1,16 +1,14 @@
 package starling.extensions.deferredShading.lights
 {
     import flash.geom.Matrix;
-    import flash.geom.Matrix3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
-    import flash.geom.Vector3D;
 
     import starling.display.DisplayObject;
     import starling.extensions.deferredShading.RenderPass;
     import starling.extensions.deferredShading.display.DeferredShadingContainer;
-    import starling.extensions.deferredShading.lights.rendering.PointLightEffect;
-    import starling.extensions.deferredShading.lights.rendering.PointLightStyle;
+    import starling.extensions.deferredShading.lights.rendering.SpotLightEffect;
+    import starling.extensions.deferredShading.lights.rendering.SpotLightStyle;
     import starling.extensions.deferredShading.renderer_internal;
     import starling.rendering.IndexData;
     import starling.rendering.Painter;
@@ -19,19 +17,21 @@ package starling.extensions.deferredShading.lights
     use namespace renderer_internal;
 
     /**
-     * Omnidirectional light.
+     * Spotlight.
      */
-    public class PointLight extends Light
+    public class SpotLight extends Light
     {
         private static var _helperMatrix:Matrix = new Matrix();
         private var _bounds:Rectangle = new Rectangle();
-        private var _mNumEdges:int = 8;
+        private var _numEdges:int = 32;
+        private var pointA:Point = new Point();
+        private var pointB:Point = new Point();
 
-        public function PointLight()
+        public function SpotLight()
         {
-            var vertexData:VertexData = new VertexData(PointLightEffect.VERTEX_FORMAT);
+            var vertexData:VertexData = new VertexData(SpotLightEffect.VERTEX_FORMAT);
             var indexData:IndexData = new IndexData(24);
-            var style:PointLightStyle = new PointLightStyle();
+            var style:SpotLightStyle = new SpotLightStyle();
 
             super(vertexData, indexData, style);
             style.light = this;
@@ -42,12 +42,28 @@ package starling.extensions.deferredShading.lights
         {
             if(DeferredShadingContainer.renderPass == RenderPass.LIGHTS)
             {
-                var style:PointLightStyle = this.style as PointLightStyle;
+                var style:SpotLightStyle = this.style as SpotLightStyle;
 
                 style.center.setTo(0, 0);
                 localToGlobal(style.center, style.center);
                 super.render(painter);
             }
+        }
+
+        /**
+         * Look at specific point in global (stage) coordinates.
+         */
+        public function lookAt(point:Point):void
+        {
+            var style:SpotLightStyle = this.style as SpotLightStyle;
+
+            pointA.setTo(point.x, point.y);
+            pointB.setTo(x, y);
+            parent.localToGlobal(pointB, pointB);
+            pointA.setTo(pointA.x - pointB.x, pointA.y - pointB.y);
+
+            var atan2:Number = Math.atan2(-pointA.y, pointA.x);
+            rotation = -(atan2 < 0 ? Math.PI * 2 + atan2 : atan2) - style.angle / 2;
         }
 
         public function setupVertices():void
@@ -58,23 +74,24 @@ package starling.extensions.deferredShading.lights
             var i:int;
             var vertexData:VertexData = this.vertexData;
             var indexData:IndexData = this.indexData;
+            var style:SpotLightStyle = this.style as SpotLightStyle;
 
             //            indexData.numIndices = mNumEdges * 3;
             //            vertexData.numVertices = mNumEdges + 1;
 
-            for(i = 0; i < _mNumEdges; ++i)
+            for(i = 0; i < _numEdges; ++i)
             {
-                var edge:Point = Point.polar((style as PointLightStyle).excircleRadius, (i * 2 * Math.PI) / _mNumEdges + 22.5 * Math.PI / 180);
+                var edge:Point = Point.polar(style.excircleRadius, style.angle * (i / (_numEdges - 1)));
                 vertexData.setPoint(i, 'position', edge.x, edge.y);
             }
 
             // Center vertex
-            vertexData.setPoint(_mNumEdges, 'position', 0.0, 0.0);
+            vertexData.setPoint(_numEdges, 'position', 0.0, 0.0);
 
             // Fill index data for triangles
 
-            for(i = 0; i < _mNumEdges; ++i)
-                indexData.addTriangle(_mNumEdges, i, (i + 1) % _mNumEdges);
+            for(i = 0; i < _numEdges; ++i)
+                indexData.addTriangle(_numEdges, i, (i + 1) % _numEdges);
 
             setRequiresRedraw();
         }
@@ -96,20 +113,6 @@ package starling.extensions.deferredShading.lights
             if(!visible || !touchable || !hitTestMask(localPoint)) return null;
             else if(_bounds.containsPoint(localPoint)) return this;
             else return null;
-        }
-
-        // Does nothing, this light is a circle after all
-
-        private var _rotation:Number;
-
-        override public function get rotation():Number
-        {
-            return _rotation;
-        }
-
-        override public function set rotation(value:Number):void
-        {
-            _rotation = value;
         }
     }
 }

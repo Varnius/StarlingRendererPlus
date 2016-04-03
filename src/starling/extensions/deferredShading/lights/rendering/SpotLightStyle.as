@@ -9,53 +9,74 @@ package starling.extensions.deferredShading.lights.rendering
     import flash.geom.Point;
 
     import starling.core.Starling;
+    import starling.display.DisplayObject;
     import starling.extensions.deferredShading.interfaces.IAreaLight;
     import starling.extensions.deferredShading.interfaces.IShadowMappedLight;
     import starling.extensions.deferredShading.lights.Light;
-    import starling.extensions.deferredShading.lights.PointLight;
+    import starling.extensions.deferredShading.lights.SpotLight;
     import starling.extensions.deferredShading.renderer_internal;
     import starling.rendering.MeshEffect;
     import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.rendering.RenderState;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
 
     use namespace renderer_internal;
 
-    public class PointLightStyle extends LightStyle implements IShadowMappedLight, IAreaLight
+    public class SpotLightStyle extends LightStyle implements IShadowMappedLight, IAreaLight
     {
-        private static var shadowMapRenderer:PointLightShadowMapRenderer = new PointLightShadowMapRenderer();
+        private static var shadowMapRenderer:SpotLightShadowMapRenderer = new SpotLightShadowMapRenderer();
+
+        public var center:Point = new Point();
+        public var light:Light;
+
+        private var globalRotationAtCenter:Number;
+        private var globalRotationAtCenterUnnormalized:Number;
+        private var globalScale:Number;
+        private var prevFrame:uint = -1;
 
         override public function copyFrom(meshStyle:MeshStyle):void
         {
-            var s:PointLightStyle = meshStyle as PointLightStyle
+            var s:SpotLightStyle = meshStyle as SpotLightStyle
 
             _castsShadows = s.castsShadows;
-            attenuation = s.attenuation;
-            radius = s.radius;
+            _attenuation = s.attenuation;
+            _radius = s.radius;
             center = s.center;
+            _angle = s.angle;
             light = s.light;
+            globalRotationAtCenter = s.globalRotationAtCenter;
+            globalRotationAtCenterUnnormalized = s.globalRotationAtCenterUnnormalized;
+            globalScale = s.globalScale;
+            prevFrame = s.prevFrame;
 
             super.copyFrom(meshStyle);
         }
 
         override public function createEffect():MeshEffect
         {
-            return new PointLightEffect();
+            return new SpotLightEffect();
         }
-
-        public var center:Point = new Point();
-        public var light:Light;
 
         override public function updateEffect(effect:MeshEffect, state:RenderState):void
         {
-            var e:PointLightEffect = effect as PointLightEffect;
+            var e:SpotLightEffect = effect as SpotLightEffect
+
+            calculateGlobalScaleAndRotation(light, angle);
 
             e.castsShadows = _castsShadows;
             e.attenuation = _attenuation;
-            e.light = light;
             e.radius = _radius;
             e.center = center;
+            e.angle = _angle;
+            e.light = light;
+            e.globalRotationAtCenter = globalRotationAtCenter;
+            e.globalRotationAtCenterUnnormalized = globalRotationAtCenterUnnormalized;
+            e.globalScale = globalScale;
+
+            // Derived
+
             e.strength = _strength;
             e.colorR = _colorR;
             e.colorG = _colorG;
@@ -75,7 +96,45 @@ package starling.extensions.deferredShading.lights.rendering
                                         vertexBuffer:VertexBuffer3D,
                                         indexBuffer:IndexBuffer3D):void
         {
-            shadowMapRenderer.renderShadowMap(painter, occluders, vertexBuffer, indexBuffer, _radius, Starling.current.stage, light)
+            calculateGlobalScaleAndRotation(light, angle);
+            shadowMapRenderer.renderShadowMap(
+                    painter,
+                    occluders,
+                    vertexBuffer,
+                    indexBuffer,
+                    _radius,
+                    _angle,
+                    Starling.current.stage,
+                    light,
+                    globalRotationAtCenter);
+        }
+
+        // Helpers
+
+        private function calculateGlobalScaleAndRotation(target:DisplayObject, angle:Number):void
+        {
+            var frame:uint = Starling.painter.frameID;
+
+            // Calculate only once per frame
+            if(frame == prevFrame) return;
+            prevFrame = frame;
+
+            var parent:DisplayObject = target;
+            globalRotationAtCenter = angle / 2;
+            globalScale = 1;
+
+            while(parent)
+            {
+                globalRotationAtCenter += parent.rotation;
+                globalScale *= parent.scaleX;
+                parent = parent.parent;
+            }
+
+            globalRotationAtCenter = MathUtil.normalizeAngle(globalRotationAtCenter);
+            globalRotationAtCenterUnnormalized = -globalRotationAtCenter;
+
+            // Convert to [0, 2Pi], anti-clockwise
+            globalRotationAtCenter = globalRotationAtCenter < 0 ? -globalRotationAtCenter : 2 * Math.PI - globalRotationAtCenter;
         }
 
         // Props
@@ -105,7 +164,7 @@ package starling.extensions.deferredShading.lights.rendering
             calculateRealRadius(value);
 
             // Setup vertex data and prepare shaders
-            if(target is PointLight) (target as PointLight).setupVertices();
+            if(target is SpotLight) (target as SpotLight).setupVertices();
         }
 
         public var excircleRadius:Number;
@@ -145,6 +204,24 @@ package starling.extensions.deferredShading.lights.rendering
         public function get shadowMap():Texture
         {
             return _shadowMap;
+        }
+
+        private var _angle:Number = Math.PI / 3;
+
+        /**
+         * Cone angle. In case the value does not fall in interval [0, 2π] it will be set to default of π / 3.
+         */
+        public function get angle():Number
+        {
+            return _angle;
+        }
+
+        public function set angle(value:Number):void
+        {
+            _angle = (value > Math.PI || value < 0) ? Math.PI / 3 : value;
+
+            // Setup vertex data and prepare shaders
+            if(target is SpotLight) (target as SpotLight).setupVertices();
         }
     }
 }

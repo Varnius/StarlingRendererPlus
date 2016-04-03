@@ -85,8 +85,6 @@ package starling.extensions.deferredShading.debug
 
         override protected function afterDraw(context:Context3D):void
         {
-
-
             super.afterDraw(context);
         }
 

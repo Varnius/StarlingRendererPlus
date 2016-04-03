@@ -11,32 +11,27 @@ package starling.extensions.deferredShading.display
     import flash.display3D.Context3DVertexBufferFormat;
     import flash.display3D.IndexBuffer3D;
     import flash.display3D.VertexBuffer3D;
-    import flash.geom.Matrix;
-    import flash.geom.Matrix3D;
     import flash.geom.Rectangle;
 
-    import starling.core.starling_internal;
-
-    import starling.display.BlendMode;
-    import starling.display.DisplayObjectContainer;
-
-    import starling.rendering.Painter;
     import starling.core.Starling;
+    import starling.core.starling_internal;
+    import starling.display.BlendMode;
     import starling.display.DisplayObject;
+    import starling.display.DisplayObjectContainer;
     import starling.display.Quad;
-    import starling.display.Sprite;
     import starling.events.Event;
     import starling.extensions.deferredShading.RenderPass;
-    import starling.extensions.deferredShading.renderer_internal;
     import starling.extensions.deferredShading.interfaces.IAreaLight;
     import starling.extensions.deferredShading.interfaces.IShadowMappedLight;
     import starling.extensions.deferredShading.lights.AmbientLight;
     import starling.extensions.deferredShading.lights.Light;
+    import starling.extensions.deferredShading.lights.rendering.LightStyle;
+    import starling.extensions.deferredShading.renderer_internal;
     import starling.extensions.utils.ShaderUtils;
+    import starling.rendering.Painter;
     import starling.rendering.Program;
     import starling.textures.Texture;
     import starling.utils.Color;
-    import starling.utils.MatrixUtil;
 
     use namespace renderer_internal;
     use namespace starling_internal;
@@ -49,9 +44,6 @@ package starling.extensions.deferredShading.display
     {
         private static const AMBIENT_PROGRAM:String = 'AmbientProgram';
 
-        protected var assembler:AGALMiniAssembler = new AGALMiniAssembler();
-
-        private static const DEFAULT_AMBIENT:AmbientLight = new AmbientLight();
         public static var defaultNormalMap:Texture;
         public static var defaultDepthMap:Texture;
         public static var defaultSpecularMap:Texture;
@@ -127,18 +119,17 @@ package starling.extensions.deferredShading.display
                 AGAL_VERSION = 3;
             }
             else
-                trace('[StarlingRendererPlus] Current Stage3D profile is not supported by RendererPlus.');
+                trace('[StarlingRendererPlus] Current Stage3D profile is not supported by StarlingRendererPlus.');
 
             prepare();
             registerPrograms();
+            updateSupportsRenderCache();
 
             // Handle lost context
             Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
         }
 
-        /*---------------------------
-         Public methods
-         ---------------------------*/
+        // Public
 
         override public function addChildAt(child:DisplayObject, index:int):DisplayObject
         {
@@ -196,9 +187,7 @@ package starling.extensions.deferredShading.display
             super.dispose();
         }
 
-        /*---------------------------
-         Overrides
-         ---------------------------*/
+        // Render
 
         private function prepare():void
         {
@@ -277,7 +266,6 @@ package starling.extensions.deferredShading.display
             target.registerProgram(AMBIENT_PROGRAM, new Program(vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode));
         }
 
-
         override public function render(painter:Painter):void
         {
             var obj:DisplayObject;
@@ -330,7 +318,6 @@ package starling.extensions.deferredShading.display
 
             var context:Context3D = Starling.context;
             var isVisible:Boolean;
-            // TODO: maybe use pushState???
             var prevRenderTarget:Texture = painter.state.renderTarget;
 
             // Set render targets, clear them and render background only
@@ -338,7 +325,6 @@ package starling.extensions.deferredShading.display
             painter.state.setRenderTarget(MRTPassRenderTargets[0], false, 0);
             context.setRenderToTexture(MRTPassRenderTargets[1].base, false, 0, 0, 1);
             context.setRenderToTexture(MRTPassRenderTargets[2].base, false, 0, 0, 2);
-            //			painter.prepareToDraw();
 
             var prevPass:String = renderPass;
             renderPass = RenderPass.MRT;
@@ -361,7 +347,6 @@ package starling.extensions.deferredShading.display
 
             painter.pushState();
             painter.state.setRenderTarget(occludersRT);
-            //			painter.prepareToDraw();
             painter.clear(0xFFFFFF, 1.0);
 
             for each(var o:DisplayObject in occluders)
@@ -381,8 +366,6 @@ package starling.extensions.deferredShading.display
 
                 if(isVisible)
                 {
-                    // todo:changed
-                    //painter.loadIdentity();
                     painter.state.setModelviewMatricesToIdentity();
                     obj = o;
 
@@ -399,9 +382,7 @@ package starling.extensions.deferredShading.display
                     for(var j:int = obs.length - 1; j >= 0; j--)
                     {
                         obj = obs[j];
-                        //todo: changed
-                        //painter.transformMatrix(obj);
-                        painter.state.transformModelviewMatrix(o.transformationMatrix);
+                        painter.state.transformModelviewMatrix(obj.transformationMatrix);
                     }
 
                     // Tint quads/images black
@@ -418,8 +399,6 @@ package starling.extensions.deferredShading.display
                 }
             }
 
-            painter.popState();
-
             /*----------------------------------
              Shadows - shadowmap pass
              ----------------------------------*/
@@ -435,9 +414,6 @@ package starling.extensions.deferredShading.display
                     continue;
                 }
 
-                //				tmpRenderTargets.length = 0;
-                //				tmpRenderTargets.push(shadowMappedLight.shadowMap, null, null);
-                //				painter.setRenderTargets(tmpRenderTargets, 0, true);
                 context.setRenderToTexture(shadowMappedLight.shadowMap.base, true, 0);
                 context.clear(0.0, 0.0, 0.0, 1.0, 1.0);
                 context.setBlendFactors(Context3DBlendFactor.ONE, Context3DBlendFactor.ZERO);
@@ -457,36 +433,36 @@ package starling.extensions.deferredShading.display
              Light pass
              ----------------------------------*/
 
-            painter.state.renderTarget = prevRenderTarget; //todo: is this needed?
+            painter.popState();
 
             if(lights.length)
             {
+                trace(Starling.frameID, 'START');
                 renderPass = RenderPass.LIGHTS;
 
                 // Bind textures required by ambient light
 
                 context.setTextureAt(4, diffuseRT.base);
-
-                // Clear RT with ambient light color
-
-                if(!ambientLight) ambientLight = DEFAULT_AMBIENT;
-
                 painter.pushState();
                 painter.clear(0x000000, 1.0);
-                painter.state.blendMode = BlendMode.NORMAL; ///todo <<<<<<<<
+                painter.state.blendMode = BlendMode.ADD;
 
-                // Render ambient light as full-screen quad
+                if(ambientLight)
+                {
+                    // Render ambient light as full-screen quad
+                    var ambientStyle:LightStyle = ambientLight.style as LightStyle;
 
-                ambient[0] = ambientLight._colorR;
-                ambient[1] = ambientLight._colorG;
-                ambient[2] = ambientLight._colorB;
+                    ambient[0] = ambientStyle._colorR;
+                    ambient[1] = ambientStyle._colorG;
+                    ambient[2] = ambientStyle._colorB;
 
-                context.setVertexBufferAt(0, overlayVertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
-                context.setVertexBufferAt(1, overlayVertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_2);
-                painter.getProgram(AMBIENT_PROGRAM).activate(context);
-                context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, ambient, 1);
-                context.drawTriangles(overlayIndexBuffer);
-                context.setVertexBufferAt(1, null);
+                    context.setVertexBufferAt(0, overlayVertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
+                    context.setVertexBufferAt(1, overlayVertexBuffer, 3, Context3DVertexBufferFormat.FLOAT_2);
+                    painter.getProgram(AMBIENT_PROGRAM).activate(context);
+                    context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, ambient, 1);
+                    context.drawTriangles(overlayIndexBuffer);
+                    context.setVertexBufferAt(1, null);
+                }
 
                 // Bind textures required by other types of lights
 
@@ -507,8 +483,6 @@ package starling.extensions.deferredShading.display
                             context.setTextureAt(3, occludersRT.base);
                         }
 
-                        // todo:changed
-                        //painter.loadIdentity();
                         painter.state.setModelviewMatricesToIdentity();
 
                         obj = l;
@@ -523,14 +497,11 @@ package starling.extensions.deferredShading.display
                         for(j = obs.length - 1; j >= 0; j--)
                         {
                             obj = obs[j];
-                            // todo:changed
-                            //painter.transformMatrix(obj);
                             painter.state.transformModelviewMatrix(obj.transformationMatrix);
                         }
 
-                        //painter.state.blendMode = BlendMode.ADD;
                         l.render(painter);
-                        painter.finishMeshBatch(); //todo: investigate performance
+                        painter.finishMeshBatch();
 
                         if(shadowMappedLight && shadowMappedLight.castsShadows)
                         {
@@ -545,15 +516,13 @@ package starling.extensions.deferredShading.display
                 context.setTextureAt(4, null);
 
                 painter.popState();
-                painter.drawCount += 1;
+                trace('END');
             }
 
             renderPass = prevPass;
         }
 
-        /*-----------------------------
-         Event handlers
-         -----------------------------*/
+        // Event handlers
 
         private function onContextCreated(event:Event):void
         {
@@ -561,6 +530,13 @@ package starling.extensions.deferredShading.display
             prepare();
             registerPrograms();
             setRequiresRedraw();
+        }
+
+        // Props
+
+        override protected function get supportsRenderCache():Boolean
+        {
+            return false;
         }
     }
 }

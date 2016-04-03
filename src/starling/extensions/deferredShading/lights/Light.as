@@ -26,39 +26,5 @@ package starling.extensions.deferredShading.lights
         {
             if(DeferredShadingContainer.renderPass == RenderPass.LIGHTS) super.render(painter);
         }
-
-        /*-----------------------------
-         Properties
-         -----------------------------*/
-
-        protected var _color:uint = 0xffffff;
-        renderer_internal var _colorR:Number = 1.0;
-        renderer_internal var _colorG:Number = 1.0;
-        renderer_internal var _colorB:Number = 1.0;
-
-        override public function get color():uint
-        {
-            return _color;
-        }
-
-        override public function set color(value:uint):void
-        {
-            _colorR = ((value >> 16) & 0xff) / 255.0;
-            _colorG = ((value >> 8) & 0xff) / 255.0;
-            _colorB = ( value & 0xff) / 255.0;
-            _color = value;
-        }
-
-        protected var _strength:Number = 1.0;
-
-        public function get strength():Number
-        {
-            return _strength;
-        }
-
-        public function set strength(value:Number):void
-        {
-            _strength = value;
-        }
     }
 }

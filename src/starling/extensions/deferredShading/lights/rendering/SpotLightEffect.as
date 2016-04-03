@@ -14,10 +14,10 @@ package starling.extensions.deferredShading.lights.rendering
     import flash.geom.Rectangle;
 
     import starling.core.Starling;
+    import starling.display.DisplayObject;
     import starling.display.Mesh;
     import starling.display.Stage;
     import starling.extensions.deferredShading.display.DeferredShadingContainer;
-    import starling.extensions.deferredShading.lights.Light;
     import starling.extensions.deferredShading.renderer_internal;
     import starling.extensions.utils.ShaderUtils;
     import starling.rendering.MeshEffect;
@@ -25,10 +25,12 @@ package starling.extensions.deferredShading.lights.rendering
     import starling.rendering.Program;
     import starling.rendering.VertexDataFormat;
     import starling.textures.Texture;
+    import starling.utils.MathUtil;
+    import starling.utils.MathUtil;
 
     use namespace renderer_internal;
 
-    public class PointLightEffect extends MeshEffect
+    public class SpotLightEffect extends MeshEffect
     {
         public static const VERTEX_FORMAT:VertexDataFormat = VertexDataFormat.fromString("position:float2");
 
@@ -44,7 +46,7 @@ package starling.extensions.deferredShading.lights.rendering
         private var lightPosition:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
         private var attenuationConstants:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
         private var atan2Constants:Vector.<Number> = new <Number>[
-            0.5, 0.5, Math.PI, 2 * Math.PI,
+            0, 0, Math.PI * 2, 0,
             2.220446049250313e-16, 0.7853981634, 0.1821, 0.9675, // atan2 magic numbers
         ];
         private var blurConstants:Vector.<Number> = new <Number>[
@@ -53,7 +55,17 @@ package starling.extensions.deferredShading.lights.rendering
             0.18, -1.0, 0.0, 0.0
         ];
         private var screenDimensions:Vector.<Number> = new <Number>[0, 0, 0, 0];
-        private static var tmpBounds:Rectangle = new Rectangle();
+
+        // Light direction
+
+        private var lightDirection:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
+        private var lightAngle:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
+
+        override public function render(firstIndex:int=0, numTriangles:int=-1):void
+        {
+            trace('RENDER');
+            super.render(firstIndex, numTriangles);
+        }
 
         override protected function createProgram():Program
         {
@@ -76,13 +88,160 @@ package starling.extensions.deferredShading.lights.rendering
             // fc4 - halfVec [0, 0, 1, 0]
             // fc5 - attenuation constants [0, 0, 0, att_s]
             // fc7 - [castsShadows, 0, 0, 0]
-            // fc8 - [1.0, 0.0, PI, 2PI]
+            // fc8 - [globalMin, angle, 2PI, -100 or 0, depending whether light cone crosses boundary where atan2 restarts]
             // fc9 - [1e-10, 0.5PI, 0.0, 0.0]
             // fc10 - constants2 [3, 0, 0, 0]
             // fc11 - blur constants [0.05, 0.09, 0.12, 0.15]
             // fc12 - blur constants [1, 2, 3, 4]
             // fc13 - blur constants [0.16, -1, 0, 0]
             // fc14 - [screenWidth, screenHeight, 0, 0]
+            // fc15 - [light direction x, light direction y, 0, 0]
+            // fc16 - [cos(light angle / 2), 1 / (1 - cos(light angle / 2)), 0, 0]
+
+            var fragmentProgramCodeBAK:String =
+                    ShaderUtils.joinProgramArray(
+                            [
+                                // Unpack screen coords to [0, 1] by
+                                // multiplying by 0.5 and then adding 0.5
+
+                                'mul ft0.xyxy, v0.xyxy, fc0.xxxx',
+                                'add ft0.xy, ft0.xy, fc0.xx',
+                                'sub ft0.y, fc0.y, ft0.y',
+
+                                // Sample normals to ft1
+
+                                'tex ft1, ft0.xy, fs0 <2d, clamp, linear, mipnone>',
+                                'sub ft1.y, fc0.y, ft1.y ', // y-axis should increase downwards
+
+                                // Then unpack normals from [0, 1] to [-1, 1]
+                                // by multiplying by 2 and then subtracting 1
+
+                                'mul ft1.xyz, ft1.xyz, fc0.zzz',
+                                'sub ft1.xyz, ft1.xyz, fc0.yyy',
+
+                                'nrm ft1.xyz, ft1.xyz',
+
+                                // Sample depth to ft2
+
+                                'tex ft2, ft0.xy, fs1 <2d, clamp, linear, mipnone>',
+
+                                // Put specular power and specular intensity to ft0.zw
+                                // Those are stored in yz of depth
+
+                                'mov ft0.z, ft2.y',
+                                'mov ft0.w, ft2.z',
+
+                                // Calculate pixel position in eye space
+
+                                'mul ft3.xyxy, ft0.xyxy, fc14.xyxy',
+                                'mov ft3.z, fc0.w',
+                                'mov ft21.xyz, ft3.xyz', // save for shadow calculations
+
+                                /*-----------------------
+                                 Calculate coincidence
+                                 between light and surface
+                                 normal
+                                 -----------------------*/
+
+                                // float3 lightDirection3D = lightPosition.xyz - pixelPosition.xyz;
+                                // z(light) = positive float, z(pixel) = 0
+                                'sub ft3.xyz, fc1.xyz, ft3.xyz',
+                                'mov ft3.w, fc0.w',
+
+                                // Save length(lightDirection2D) to ft20.x for later shadow calculations
+                                'pow ft20.x, ft3.x, fc0.z',
+                                'pow ft20.y, ft3.y, fc0.z',
+                                'add ft20.x, ft20.x, ft20.y',
+                                'sqt ft20.x, ft20.x',
+                                'div ft20.x, ft20.x, fc2.x',
+
+                                // float3 lightDirNorm = normalize(lightDirection3D);
+                                'nrm ft7.xyz, ft3.xyz',
+
+                                // float amount = max(dot(normal, lightDirNorm), 0);
+                                // Put it in ft5.x
+                                'dp3 ft5.x, ft1.xyz, ft7.xyz',
+                                'max ft5.x, ft5.x, fc0.w',
+
+                                /*-----------------------
+                                 Calculate attenuation
+                                 -----------------------*/
+
+                                // Linear attenuation
+                                // http://blog.slindev.com/2011/01/10/natural-light-attenuation/
+                                // Put it in ft5.y
+                                'mov ft3.z, fc0.w', // attenuation is calculated in 2D
+                                'dp3 ft5.y, ft3.xyz, ft3.xyz',
+                                'div ft5.y, ft5.y, fc2.w',
+                                'mul ft5.y, ft5.y, fc5.x',
+                                'add ft5.y, ft5.y, fc0.y',
+                                'rcp ft5.y, ft5.y',
+                                'sub ft5.y, ft5.y, fc5.y',
+                                'div ft5.y, ft5.y, fc5.z',
+
+                                /*-----------------------
+                                 Calculate specular
+                                 -----------------------*/
+
+                                'neg ft7.xyz, ft7.xyz',
+                                'dp3 ft6.x, ft7.xyz, ft1.xyz',
+                                'mul ft6.xyz, ft6.xxx, fc0.z', //35
+                                'mul ft6.xyz, ft6.xxx, ft1.xyz',
+                                'sub ft6.xyz, ft7.xyz, ft6.xyz',
+
+                                'dp3 ft6.x, ft6.xyz, fc4.xyz',
+                                'max ft6.x, ft6.x, fc0.w',
+                                'pow ft5.z, ft6.x, ft0.z',
+
+                                /*-----------------------
+                                 Finalize
+                                 -----------------------*/
+
+                                // Output.Color = lightColor * coneAttenuation * lightStrength
+                                'mul ft6.xyz, ft5.yyy, fc3.xyz',
+                                'mul ft6.xyz, ft6.xyz, ft5.x',
+
+                                // + (coneAttenuation * specular * specularStrength)
+                                'mul ft7.x, ft5.y, ft5.z',
+                                'mul ft7.x, ft7.x, ft0.w',
+                                'mov ft6.w, ft7.x',
+
+                                // Light intensity at the corners of the cone
+                                // Those depend on the angle between current beam and center beam
+
+                                // Point dir vector
+                                'nrm ft4.xyz, ft3.xyz',
+                                'neg ft4.x, ft4.x',
+                                'dp3 ft12.x, ft4.xyz, fc15.xyz',
+
+                                // Scale all calculated coefs to be in range [0, 1]
+                                // Put resulting coef into ft7.x, that one isn't used by shadows shader part
+
+                                'sub ft12.x, ft12.x, fc16.x',
+                                'mul ft7.x, ft12.x, fc16.y',
+
+                                // Shadows part :>
+
+                                '<shadows>',
+
+                                // Multiply diffuse color by calculated light amounts
+
+                                'tex ft1, ft0.xy, fs4 <2d, clamp, linear, mipnone>',
+
+                                // light = (specular * lightColor + diffuseLight) * lightStrength
+                                'mul ft2.xyz, ft6.www, fc3.xyz,',
+                                'add ft2.xyz, ft2.xyz, ft6.xyz',
+                                'mul ft2.xyz, ft2.xyz, fc2.yyy ',
+                                'mov ft2.w, fc0.y',
+
+                                // Multiply result by light intensity coef
+                                'mul ft2.xyz, ft2.xyz, ft7.x',
+
+                                // light * diffuseRT
+                                'mul ft2.xyz, ft2.xyz, ft1.xyz',
+                                'mov oc, ft2',
+                            ]
+                    );
 
             var fragmentProgramCode:String =
                     ShaderUtils.joinProgramArray(
@@ -171,7 +330,7 @@ package starling.extensions.deferredShading.lights.rendering
 
                                 'neg ft7.xyz, ft7.xyz',
                                 'dp3 ft6.x, ft7.xyz, ft1.xyz',
-                                'mul ft6.xyz, ft6.xxx, fc0.z',
+                                'mul ft6.xyz, ft6.xxx, fc0.z', //35
                                 'mul ft6.xyz, ft6.xxx, ft1.xyz',
                                 'sub ft6.xyz, ft7.xyz, ft6.xyz',
 
@@ -192,6 +351,22 @@ package starling.extensions.deferredShading.lights.rendering
                                 'mul ft7.x, ft7.x, ft0.w',
                                 'mov ft6.w, ft7.x',
 
+                                // Light intensity at the corners of the cone
+                                // Those depend on the angle between current beam and center beam
+
+                                // Point dir vector
+                                'nrm ft4.xyz, ft3.xyz',
+                                'neg ft4.x, ft4.x',
+                                'dp3 ft12.x, ft4.xyz, fc15.xyz',
+
+                                // Scale all calculated coefs to be in range [0, 1]
+                                // Put resulting coef into ft7.x, that one isn't used by shadows shader part
+
+                                'sub ft12.x, ft12.x, fc16.x',
+                                'mul ft7.x, ft12.x, fc16.y',
+
+                                // Shadows part :>
+
                                 '<shadows>',
 
                                 // Multiply diffuse color by calculated light amounts
@@ -204,10 +379,12 @@ package starling.extensions.deferredShading.lights.rendering
                                 'mul ft2.xyz, ft2.xyz, fc2.yyy ',
                                 'mov ft2.w, fc0.y',
 
+                                // Multiply result by light intensity coef
+                                'mul ft2.xyz, ft2.xyz, ft7.x',
+
                                 // light * diffuseRT
                                 'mul ft2.xyz, ft2.xyz, ft1.xyz',
-
-                                'mov oc, ft2'
+                                'mov oc, ft2',
                             ]
                     );
 
@@ -222,7 +399,7 @@ package starling.extensions.deferredShading.lights.rendering
                                 'tex ft10, ft0.xy, fs3 <2d, clamp, linear, nomip>',
 
                                 // Calculate pixel position in lights own coordinate system, where
-                                // the center is (0, 0) and Y axis increases downwards
+                                // light center is (0, 0) and Y axis increases downwards
                                 'sub ft11.xy, ft21.xy, fc1.xy',
                                 'div ft11.xy, ft11.xy, fc2.x',
                                 'neg ft11.y, ft11.y',
@@ -254,9 +431,17 @@ package starling.extensions.deferredShading.lights.rendering
                                 'mul ft9.x, ft9.x, ft8.z' /* ft9.x = '(0.1821 * absYandR * absYandR - 0.9675) * absYandR' */,
                                 'add ft9.x, ft9.x, ft8.w' /* ft9.x = '(partSignX, 1.0) * 0.7853981634, (0.1821 * absYandR * absYandR - 0.9675) * absYandR' */,
                                 'mul ft9.x, ft9.x, ft8.y' /* ft9.x = '((partSignX, 1.0) * 0.7853981634, (0.1821 * absYandR * absYandR - 0.9675) * absYandR) * sign' */,
-                                /* compress -pi..pi to 0..1: (angle,pi)/(2*pi) */
-                                'add ft9.x, ft9.x, fc8.z',
-                                'div ft9.x, ft9.x, fc8.w',
+
+                                // convert atan result to range [0, 2pi]
+                                'ifl ft9.x, fc8.w',
+                                'neg ft9.x, ft9.x',
+                                'sub ft9.x, fc8.z, ft9.x',
+                                'eif',
+
+                                // atan result is in range [a, b], compress to 0..1: (angle + pi)/(2 * pi)
+                                'sub ft9.x, ft9.x, fc8.x',
+                                'div ft9.x, ft9.x, fc8.y',
+                                'sub ft9.x, fc0.y, ft9.x',
 
                                 /*--------------------------------
                                  Apply gaussian blur
@@ -389,12 +574,17 @@ package starling.extensions.deferredShading.lights.rendering
 
             // Set constants
 
+            // Light direction vector
+            // Calculate global rotation up to the root
+
+            lightDirection[0] = Math.cos(globalRotationAtCenter);
+            lightDirection[1] = Math.sin(globalRotationAtCenter);
+
             lightPosition[0] = center.x;
             lightPosition[1] = center.y;
-            lightPosition[2] = radius / 2;
+            lightPosition[2] = Math.sqrt((radius * radius) / 2);
 
-            light.getBounds(null, tmpBounds);
-            var scaledRadius:Number = tmpBounds.width / 2;
+            var scaledRadius:Number = radius * globalScale;
 
             lightProps[0] = scaledRadius;
             lightProps[1] = strength;
@@ -414,10 +604,16 @@ package starling.extensions.deferredShading.lights.rendering
             screenDimensions[0] = Starling.current.stage.stageWidth;
             screenDimensions[1] = Starling.current.stage.stageHeight;
 
+            // Light angle
+
+            lightAngle[0] = Math.cos(angle / 2);
+            lightAngle[1] = 1 / (1 - lightAngle[0]);
+
             program.activate(context);
             vertexFormat.setVertexBufferAt(0, vertexBuffer, 'position');
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix3D, true);
-            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 5, constants, 1);
+            context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, constants, 1);
+
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, constants, 1);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, lightPosition, 1);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 2, lightProps, 1);
@@ -428,12 +624,22 @@ package starling.extensions.deferredShading.lights.rendering
 
             if(castsShadows)
             {
+                var globalMax:Number = globalRotationAtCenter + angle / 2;
+                var globalMin:Number = globalRotationAtCenter - angle / 2;
+                var out:Boolean = globalMin < 0 || globalMax > Math.PI * 2;
+
+                atan2Constants[0] = out ? globalRotationAtCenterUnnormalized - angle / 2 : globalMin;
+                atan2Constants[1] = angle;
+                atan2Constants[3] = out ? -100.0 : 0.0;
+
                 context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 8, atan2Constants, 2);
                 context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 10, constants2, 1);
                 context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 11, blurConstants, 3);
             }
 
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 14, screenDimensions, 1);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 15, lightDirection, 1);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 16, lightAngle, 1);
         }
 
         override protected function afterDraw(context:Context3D):void
@@ -443,13 +649,17 @@ package starling.extensions.deferredShading.lights.rendering
 
         // Props
 
-        public var light:Light;
+        public var light:Mesh;
         public var radius:int;
+        public var angle:Number;
         public var center:Point = new Point();
         public var castsShadows:Boolean;
         public var attenuation:Number;
         public var strength:Number;
         public var colorR:Number, colorG:Number, colorB:Number;
+        public var globalRotationAtCenter:Number;
+        public var globalRotationAtCenterUnnormalized:Number;
+        public var globalScale:Number;
 
         override public function get vertexFormat():VertexDataFormat
         {

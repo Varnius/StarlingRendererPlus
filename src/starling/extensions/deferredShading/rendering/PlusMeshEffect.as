@@ -4,7 +4,6 @@ package starling.extensions.deferredShading.rendering
     import flash.display3D.Context3DProgramType;
 
     import starling.extensions.deferredShading.Material;
-
     import starling.extensions.deferredShading.RenderPass;
     import starling.extensions.deferredShading.display.DeferredShadingContainer;
     import starling.extensions.utils.ShaderUtils;
@@ -38,8 +37,6 @@ package starling.extensions.deferredShading.rendering
             {
                 if(pass == RenderPass.MRT)
                 {
-                    trace('creating MRT prog - texture');
-
                     vertexShader = ShaderUtils.joinProgramArray(
                             [
                                 "m44 op, va0, vc0",     // 4x4 matrix transform to output clip-space
@@ -88,8 +85,6 @@ package starling.extensions.deferredShading.rendering
             {
                 if(pass == RenderPass.MRT)
                 {
-                    trace('creating MRT prog - quad');
-
                     vertexShader = ShaderUtils.joinProgramArray(
                             [
                                 "m44 op, va0, vc0", // 4x4 matrix transform to output clipspace
@@ -144,11 +139,15 @@ package starling.extensions.deferredShading.rendering
                     {
                         normalMapPresent = material.normal;
                         depthMapPresent = material.depth;
+                        specularParams[0] = material.specularPower;
+                        specularParams[1] = material.specularIntensity;
                     }
                     else
                     {
                         normalMapPresent = false;
                         depthMapPresent = false;
+                        specularParams[0] = 0;
+                        specularParams[1] = 0;
                     }
 
                     context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 5, specularParams, 1);
