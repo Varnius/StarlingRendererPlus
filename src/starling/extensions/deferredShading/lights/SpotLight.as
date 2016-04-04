@@ -90,7 +90,7 @@ package starling.extensions.deferredShading.lights
 
             // Fill index data for triangles
 
-            for(i = 0; i < _numEdges; ++i)
+            for(i = 0; i < _numEdges - 1; ++i)
                 indexData.addTriangle(_numEdges, i, (i + 1) % _numEdges);
 
             setRequiresRedraw();

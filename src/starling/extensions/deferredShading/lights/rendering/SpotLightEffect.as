@@ -61,12 +61,6 @@ package starling.extensions.deferredShading.lights.rendering
         private var lightDirection:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
         private var lightAngle:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
 
-        override public function render(firstIndex:int=0, numTriangles:int=-1):void
-        {
-            trace('RENDER');
-            super.render(firstIndex, numTriangles);
-        }
-
         override protected function createProgram():Program
         {
             // va0 - position

@@ -437,7 +437,6 @@ package starling.extensions.deferredShading.display
 
             if(lights.length)
             {
-                trace(Starling.frameID, 'START');
                 renderPass = RenderPass.LIGHTS;
 
                 // Bind textures required by ambient light
@@ -516,7 +515,6 @@ package starling.extensions.deferredShading.display
                 context.setTextureAt(4, null);
 
                 painter.popState();
-                trace('END');
             }
 
             renderPass = prevPass;
