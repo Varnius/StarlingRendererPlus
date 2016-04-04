@@ -17,7 +17,7 @@ package starling.extensions.deferredShading.lights.rendering
     import starling.display.DisplayObject;
     import starling.display.Mesh;
     import starling.display.Stage;
-    import starling.extensions.deferredShading.display.DeferredShadingContainer;
+    import starling.extensions.deferredShading.display.RendererPlus;
     import starling.extensions.deferredShading.renderer_internal;
     import starling.extensions.utils.ShaderUtils;
     import starling.rendering.MeshEffect;
@@ -539,19 +539,19 @@ package starling.extensions.deferredShading.lights.rendering
                     );
 
             var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-            vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, DeferredShadingContainer.AGAL_VERSION);
+            vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, RendererPlus.AGAL_VERSION);
 
             if(castsShadows)
             {
                 var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-                fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode.replace('<shadows>', shadowsCode), DeferredShadingContainer.AGAL_VERSION);
+                fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode.replace('<shadows>', shadowsCode), RendererPlus.AGAL_VERSION);
 
                 return new Program(vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
             }
             else
             {
                 fragmentProgramAssembler = new AGALMiniAssembler();
-                fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode.replace('<shadows>', ''), DeferredShadingContainer.AGAL_VERSION);
+                fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode.replace('<shadows>', ''), RendererPlus.AGAL_VERSION);
 
                 return new Program(vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode);
             }

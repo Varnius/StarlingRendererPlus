@@ -5,7 +5,7 @@ package starling.extensions.deferredShading.rendering
 
     import starling.extensions.deferredShading.Material;
     import starling.extensions.deferredShading.RenderPass;
-    import starling.extensions.deferredShading.display.DeferredShadingContainer;
+    import starling.extensions.deferredShading.display.RendererPlus;
     import starling.extensions.utils.ShaderUtils;
     import starling.rendering.MeshEffect;
     import starling.rendering.Program;
@@ -31,7 +31,7 @@ package starling.extensions.deferredShading.rendering
         override protected function createProgram():Program
         {
             var vertexShader:String, fragmentShader:String;
-            var pass:String = DeferredShadingContainer.renderPass;
+            var pass:String = RendererPlus.renderPass;
 
             if(texture)
             {
@@ -118,7 +118,7 @@ package starling.extensions.deferredShading.rendering
         override protected function get programVariantName():uint
         {
             // Only 2 options here - either regular pass or a MRT one
-            var mrtBit:uint = DeferredShadingContainer.renderPass == RenderPass.MRT ? 1 : 0;
+            var mrtBit:uint = RendererPlus.renderPass == RenderPass.MRT ? 1 : 0;
             var baseBits:uint = super.programVariantName;
             return baseBits |= mrtBit << 4;
         }
@@ -127,7 +127,7 @@ package starling.extensions.deferredShading.rendering
         {
             super.beforeDraw(context);
 
-            if(DeferredShadingContainer.renderPass == RenderPass.MRT)
+            if(RendererPlus.renderPass == RenderPass.MRT)
             {
                 if(texture)
                 {
@@ -153,8 +153,8 @@ package starling.extensions.deferredShading.rendering
                     context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 5, specularParams, 1);
                     context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 6, constants, 1);
                     context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 7, constants2, 1);
-                    context.setTextureAt(1, normalMapPresent ? material.normal.base : DeferredShadingContainer.defaultNormalMap.base);
-                    context.setTextureAt(2, depthMapPresent ? material.depth.base : DeferredShadingContainer.defaultDepthMap.base);
+                    context.setTextureAt(1, normalMapPresent ? material.normal.base : RendererPlus.defaultNormalMap.base);
+                    context.setTextureAt(2, depthMapPresent ? material.depth.base : RendererPlus.defaultDepthMap.base);
                 }
                 else
                 {
@@ -169,7 +169,7 @@ package starling.extensions.deferredShading.rendering
         {
             if(texture)
             {
-                if(DeferredShadingContainer.renderPass == RenderPass.MRT)
+                if(RendererPlus.renderPass == RenderPass.MRT)
                 {
                     // Unset textures
                     context.setTextureAt(1, null);

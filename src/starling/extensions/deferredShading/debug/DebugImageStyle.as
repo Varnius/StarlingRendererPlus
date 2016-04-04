@@ -7,11 +7,6 @@ package starling.extensions.deferredShading.debug
 
     public class DebugImageStyle extends MeshStyle
     {
-        public function DebugImageStyle()
-        {
-            super();
-        }
-
         override public function copyFrom(meshStyle:MeshStyle):void
         {
             var style:DebugImageStyle = meshStyle as DebugImageStyle;
@@ -28,7 +23,6 @@ package starling.extensions.deferredShading.debug
         override public function updateEffect(effect:MeshEffect, state:RenderState):void
         {
             super.updateEffect(effect, state);
-
             (effect as DebugImageEffect)._showChannel = _showChannel;
         }
 

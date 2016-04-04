@@ -40,7 +40,7 @@ package starling.extensions.deferredShading.display
      * DeferredRenderer. Serves as a container for all other display objects
      * that should have lighting applied to them.
      */
-    public class DeferredShadingContainer extends DisplayObjectContainer
+    public class RendererPlus extends DisplayObjectContainer
     {
         private static const AMBIENT_PROGRAM:String = 'AmbientProgram';
 
@@ -104,9 +104,9 @@ package starling.extensions.deferredShading.display
         private var prepared:Boolean = false;
 
         /**
-         * Class constructor. Creates a new instance of DeferredShadingContainer.
+         * Class constructor. Creates a new instance of RendererPlus.
          */
-        public function DeferredShadingContainer()
+        public function RendererPlus()
         {
             if(Starling.current.profile == 'standard')
             {

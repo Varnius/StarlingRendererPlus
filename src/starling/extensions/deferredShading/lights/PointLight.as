@@ -8,7 +8,7 @@ package starling.extensions.deferredShading.lights
 
     import starling.display.DisplayObject;
     import starling.extensions.deferredShading.RenderPass;
-    import starling.extensions.deferredShading.display.DeferredShadingContainer;
+    import starling.extensions.deferredShading.display.RendererPlus;
     import starling.extensions.deferredShading.lights.rendering.PointLightEffect;
     import starling.extensions.deferredShading.lights.rendering.PointLightStyle;
     import starling.extensions.deferredShading.renderer_internal;
@@ -40,7 +40,7 @@ package starling.extensions.deferredShading.lights
 
         override public function render(painter:Painter):void
         {
-            if(DeferredShadingContainer.renderPass == RenderPass.LIGHTS)
+            if(RendererPlus.renderPass == RenderPass.LIGHTS)
             {
                 var style:PointLightStyle = this.style as PointLightStyle;
 

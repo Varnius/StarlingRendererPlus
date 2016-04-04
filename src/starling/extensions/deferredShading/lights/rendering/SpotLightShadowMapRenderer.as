@@ -17,7 +17,7 @@ package starling.extensions.deferredShading.lights.rendering
     import starling.display.DisplayObject;
     import starling.display.Mesh;
     import starling.display.Stage;
-    import starling.extensions.deferredShading.display.DeferredShadingContainer;
+    import starling.extensions.deferredShading.display.RendererPlus;
     import starling.extensions.deferredShading.lights.Light;
     import starling.extensions.utils.ShaderUtils;
     import starling.rendering.Painter;
@@ -169,7 +169,7 @@ package starling.extensions.deferredShading.lights.rendering
 
             // Calculate the number of pixels we can process using single draw call
 
-            PIXELS_PER_DRAW_CALL = Math.floor((DeferredShadingContainer.OPCODE_LIMIT - 6) / 15);
+            PIXELS_PER_DRAW_CALL = Math.floor((RendererPlus.OPCODE_LIMIT - 6) / 15);
 
             var i:int = PIXELS_PER_DRAW_CALL;
             var loopCode:String = '';
@@ -230,10 +230,10 @@ package starling.extensions.deferredShading.lights.rendering
             fragmentProgramCode = fragmentProgramCode.replace('<loop>', loopCode);
 
             var vertexProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-            vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, DeferredShadingContainer.AGAL_VERSION);
+            vertexProgramAssembler.assemble(Context3DProgramType.VERTEX, vertexProgramCode, RendererPlus.AGAL_VERSION);
 
             var fragmentProgramAssembler:AGALMiniAssembler = new AGALMiniAssembler();
-            fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode, DeferredShadingContainer.AGAL_VERSION);
+            fragmentProgramAssembler.assemble(Context3DProgramType.FRAGMENT, fragmentProgramCode, RendererPlus.AGAL_VERSION);
 
             Starling.current.painter.registerProgram(PROGRAM_NAME, new Program(vertexProgramAssembler.agalcode, fragmentProgramAssembler.agalcode));
         }
