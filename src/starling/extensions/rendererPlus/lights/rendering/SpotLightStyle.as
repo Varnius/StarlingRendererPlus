@@ -1,7 +1,13 @@
+// StarlingRendererPlus
+// Copyright Simonas Pauliukevičius. All Rights Reserved.
+//
+// This program is free software. You can redistribute and/or modify it
+// in accordance with the terms of the accompanying license agreement.
+
 /**
  * Created by Derpy on 2016.02.21.
  */
-package starling.extensions.deferredShading.lights.rendering
+package starling.extensions.rendererPlus.lights.rendering
 {
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.IndexBuffer3D;
@@ -10,11 +16,11 @@ package starling.extensions.deferredShading.lights.rendering
 
     import starling.core.Starling;
     import starling.display.DisplayObject;
-    import starling.extensions.deferredShading.interfaces.IAreaLight;
-    import starling.extensions.deferredShading.interfaces.IShadowMappedLight;
-    import starling.extensions.deferredShading.lights.Light;
-    import starling.extensions.deferredShading.lights.SpotLight;
-    import starling.extensions.deferredShading.renderer_internal;
+    import starling.extensions.rendererPlus.interfaces.IAreaLight;
+    import starling.extensions.rendererPlus.interfaces.IShadowMappedLight;
+    import starling.extensions.rendererPlus.lights.Light;
+    import starling.extensions.rendererPlus.lights.SpotLight;
+    import starling.extensions.rendererPlus.renderer_internal;
     import starling.rendering.MeshEffect;
     import starling.rendering.MeshStyle;
     import starling.rendering.Painter;

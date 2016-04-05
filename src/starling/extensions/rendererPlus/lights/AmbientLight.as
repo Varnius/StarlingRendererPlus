@@ -1,9 +1,15 @@
-package starling.extensions.deferredShading.lights
+// StarlingRendererPlus
+// Copyright Simonas Pauliukevičius. All Rights Reserved.
+//
+// This program is free software. You can redistribute and/or modify it
+// in accordance with the terms of the accompanying license agreement.
+
+package starling.extensions.rendererPlus.lights
 {
     import flash.geom.Rectangle;
 
     import starling.display.DisplayObject;
-    import starling.extensions.deferredShading.lights.rendering.LightStyle;
+    import starling.extensions.rendererPlus.lights.rendering.LightStyle;
     import starling.rendering.IndexData;
     import starling.rendering.MeshStyle;
     import starling.rendering.Painter;

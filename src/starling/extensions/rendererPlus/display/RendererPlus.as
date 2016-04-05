@@ -1,4 +1,10 @@
-package starling.extensions.deferredShading.display
+// StarlingRendererPlus
+// Copyright Simonas Pauliukevičius. All Rights Reserved.
+//
+// This program is free software. You can redistribute and/or modify it
+// in accordance with the terms of the accompanying license agreement.
+
+package starling.extensions.rendererPlus.display
 {
     import com.adobe.utils.AGALMiniAssembler;
 
@@ -20,13 +26,13 @@ package starling.extensions.deferredShading.display
     import starling.display.DisplayObjectContainer;
     import starling.display.Quad;
     import starling.events.Event;
-    import starling.extensions.deferredShading.RenderPass;
-    import starling.extensions.deferredShading.interfaces.IAreaLight;
-    import starling.extensions.deferredShading.interfaces.IShadowMappedLight;
-    import starling.extensions.deferredShading.lights.AmbientLight;
-    import starling.extensions.deferredShading.lights.Light;
-    import starling.extensions.deferredShading.lights.rendering.LightStyle;
-    import starling.extensions.deferredShading.renderer_internal;
+    import starling.extensions.rendererPlus.RenderPass;
+    import starling.extensions.rendererPlus.interfaces.IAreaLight;
+    import starling.extensions.rendererPlus.interfaces.IShadowMappedLight;
+    import starling.extensions.rendererPlus.lights.AmbientLight;
+    import starling.extensions.rendererPlus.lights.Light;
+    import starling.extensions.rendererPlus.lights.rendering.LightStyle;
+    import starling.extensions.rendererPlus.renderer_internal;
     import starling.extensions.utils.ShaderUtils;
     import starling.rendering.Painter;
     import starling.rendering.Program;

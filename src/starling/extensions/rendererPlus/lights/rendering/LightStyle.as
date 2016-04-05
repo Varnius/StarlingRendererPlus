@@ -1,9 +1,15 @@
+// StarlingRendererPlus
+// Copyright Simonas Pauliukevičius. All Rights Reserved.
+//
+// This program is free software. You can redistribute and/or modify it
+// in accordance with the terms of the accompanying license agreement.
+
 /**
  * Created by Derpy on 2016.03.25.
  */
-package starling.extensions.deferredShading.lights.rendering
+package starling.extensions.rendererPlus.lights.rendering
 {
-    import starling.extensions.deferredShading.renderer_internal;
+    import starling.extensions.rendererPlus.renderer_internal;
     import starling.rendering.MeshStyle;
 
     use namespace renderer_internal;

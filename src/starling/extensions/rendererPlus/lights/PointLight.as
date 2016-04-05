@@ -1,4 +1,10 @@
-package starling.extensions.deferredShading.lights
+// StarlingRendererPlus
+// Copyright Simonas Pauliukevičius. All Rights Reserved.
+//
+// This program is free software. You can redistribute and/or modify it
+// in accordance with the terms of the accompanying license agreement.
+
+package starling.extensions.rendererPlus.lights
 {
     import flash.geom.Matrix;
     import flash.geom.Matrix3D;
@@ -7,11 +13,11 @@ package starling.extensions.deferredShading.lights
     import flash.geom.Vector3D;
 
     import starling.display.DisplayObject;
-    import starling.extensions.deferredShading.RenderPass;
-    import starling.extensions.deferredShading.display.RendererPlus;
-    import starling.extensions.deferredShading.lights.rendering.PointLightEffect;
-    import starling.extensions.deferredShading.lights.rendering.PointLightStyle;
-    import starling.extensions.deferredShading.renderer_internal;
+    import starling.extensions.rendererPlus.RenderPass;
+    import starling.extensions.rendererPlus.display.RendererPlus;
+    import starling.extensions.rendererPlus.lights.rendering.PointLightEffect;
+    import starling.extensions.rendererPlus.lights.rendering.PointLightStyle;
+    import starling.extensions.rendererPlus.renderer_internal;
     import starling.rendering.IndexData;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;

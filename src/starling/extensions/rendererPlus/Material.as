@@ -1,4 +1,10 @@
-package starling.extensions.deferredShading
+// StarlingRendererPlus
+// Copyright Simonas Pauliukevičius. All Rights Reserved.
+//
+// This program is free software. You can redistribute and/or modify it
+// in accordance with the terms of the accompanying license agreement.
+
+package starling.extensions.rendererPlus
 {
     import flash.display3D.textures.TextureBase;
     import flash.geom.Matrix;

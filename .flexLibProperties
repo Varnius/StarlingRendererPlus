@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
-    <classEntry path="starling.extensions.deferredShading.Material"/>
+    <classEntry path="starling.extensions.rendererPlus.Material"/>
     <classEntry path="starling.filters.VoronoiNoise"/>
-    <classEntry path="starling.extensions.deferredShading.lights.SpotLight"/>
-    <classEntry path="starling.extensions.deferredShading.interfaces.IShadowMappedLight"/>
-    <classEntry path="starling.extensions.deferredShading.interfaces.IAreaLight"/>
+    <classEntry path="starling.extensions.rendererPlus.lights.SpotLight"/>
+    <classEntry path="starling.extensions.rendererPlus.interfaces.IShadowMappedLight"/>
+    <classEntry path="starling.extensions.rendererPlus.interfaces.IAreaLight"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

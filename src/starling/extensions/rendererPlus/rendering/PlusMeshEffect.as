@@ -1,11 +1,17 @@
-package starling.extensions.deferredShading.rendering
+// StarlingRendererPlus
+// Copyright Simonas Pauliukevičius. All Rights Reserved.
+//
+// This program is free software. You can redistribute and/or modify it
+// in accordance with the terms of the accompanying license agreement.
+
+package starling.extensions.rendererPlus.rendering
 {
     import flash.display3D.Context3D;
     import flash.display3D.Context3DProgramType;
 
-    import starling.extensions.deferredShading.Material;
-    import starling.extensions.deferredShading.RenderPass;
-    import starling.extensions.deferredShading.display.RendererPlus;
+    import starling.extensions.rendererPlus.Material;
+    import starling.extensions.rendererPlus.RenderPass;
+    import starling.extensions.rendererPlus.display.RendererPlus;
     import starling.extensions.utils.ShaderUtils;
     import starling.rendering.MeshEffect;
     import starling.rendering.Program;

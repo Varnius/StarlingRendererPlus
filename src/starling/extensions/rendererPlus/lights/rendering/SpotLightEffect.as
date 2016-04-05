@@ -1,7 +1,13 @@
+// StarlingRendererPlus
+// Copyright Simonas Pauliukevičius. All Rights Reserved.
+//
+// This program is free software. You can redistribute and/or modify it
+// in accordance with the terms of the accompanying license agreement.
+
 /**
  * Created by Derpy on 2016.02.21.
  */
-package starling.extensions.deferredShading.lights.rendering
+package starling.extensions.rendererPlus.lights.rendering
 {
     import com.adobe.utils.AGALMiniAssembler;
 
@@ -17,8 +23,8 @@ package starling.extensions.deferredShading.lights.rendering
     import starling.display.DisplayObject;
     import starling.display.Mesh;
     import starling.display.Stage;
-    import starling.extensions.deferredShading.display.RendererPlus;
-    import starling.extensions.deferredShading.renderer_internal;
+    import starling.extensions.rendererPlus.display.RendererPlus;
+    import starling.extensions.rendererPlus.renderer_internal;
     import starling.extensions.utils.ShaderUtils;
     import starling.rendering.MeshEffect;
     import starling.rendering.Painter;

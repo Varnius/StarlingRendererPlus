@@ -4,13 +4,7 @@
 // This program is free software. You can redistribute and/or modify it
 // in accordance with the terms of the accompanying license agreement.
 
-package starling.extensions.utils
+package starling.extensions.rendererPlus
 {
-	public class ShaderUtils
-	{
-		public static function joinProgramArray(array:Array):String
-		{
-			return array.join('\n') + '\n';
-		}
-	}
+	public namespace renderer_internal = 'http://www.nekobit.eu/renderer_internal';
 }
