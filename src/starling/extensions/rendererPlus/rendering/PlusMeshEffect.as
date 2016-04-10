@@ -30,10 +30,6 @@ package starling.extensions.rendererPlus.rendering
         private var constants:Vector.<Number> = new <Number>[1.0, 0.0, 0.0, 0.0];
         private var constants2:Vector.<Number> = new <Number>[0.01, 0.0, 0.0, 0.0];
 
-        public function PlusMeshEffect()
-        {
-        }
-
         override protected function createProgram():Program
         {
             var vertexShader:String, fragmentShader:String;

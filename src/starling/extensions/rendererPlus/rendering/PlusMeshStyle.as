@@ -19,7 +19,7 @@ package starling.extensions.rendererPlus.rendering
 
         override public function canBatchWith(meshStyle:MeshStyle):Boolean
         {
-            // PlushMeshStyle should be able to batch with simple MeshStyles because
+            // Should be able to batch with simple MeshStyles because
             // all additional textures (normal, depth etc) are supposed to have the
             // same properties as the main texture set at sampler #0
             if(meshStyle is MeshStyle)

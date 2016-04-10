@@ -18,13 +18,14 @@ package starling.extensions.rendererPlus.display
     import flash.display3D.IndexBuffer3D;
     import flash.display3D.VertexBuffer3D;
     import flash.geom.Rectangle;
+    import flash.utils.Dictionary;
 
     import starling.core.Starling;
     import starling.core.starling_internal;
     import starling.display.BlendMode;
     import starling.display.DisplayObject;
     import starling.display.DisplayObjectContainer;
-    import starling.display.Quad;
+    import starling.display.Mesh;
     import starling.events.Event;
     import starling.extensions.rendererPlus.RenderPass;
     import starling.extensions.rendererPlus.interfaces.IAreaLight;
@@ -33,11 +34,11 @@ package starling.extensions.rendererPlus.display
     import starling.extensions.rendererPlus.lights.Light;
     import starling.extensions.rendererPlus.lights.rendering.LightStyle;
     import starling.extensions.rendererPlus.renderer_internal;
+    import starling.extensions.rendererPlus.rendering.OccluderStyle;
     import starling.extensions.utils.ShaderUtils;
     import starling.rendering.Painter;
     import starling.rendering.Program;
     import starling.textures.Texture;
-    import starling.utils.Color;
 
     use namespace renderer_internal;
     use namespace starling_internal;
@@ -355,7 +356,7 @@ package starling.extensions.rendererPlus.display
             painter.state.setRenderTarget(occludersRT);
             painter.clear(0xFFFFFF, 1.0);
 
-            for each(var o:DisplayObject in occluders)
+            for each(var o:Mesh in occluders)
             {
                 // Skip early if occluder is already culled
                 // I'm using this with QuadTreeSprite
@@ -392,17 +393,21 @@ package starling.extensions.rendererPlus.display
                     }
 
                     // Tint quads/images black
-                    // Custom display objects should check if support.renderPass == RenderPass.OCCLUDERS
-                    // in their render method and render tinted version of an object.
+                    // A special OccluderStyle is used for that
 
-                    var q:Quad = o as Quad;
-
-                    if(q) q.color = Color.BLACK;
-
+                    styleByMesh[o] = o.style;
+                    o.style = new OccluderStyle();
                     o.render(painter);
-
-                    if(q) q.color = Color.WHITE;
                 }
+            }
+
+            painter.finishMeshBatch();
+
+            for(var mesh:Mesh in styleByMesh)
+            {
+                _occluderStylePool.push(mesh.style);
+                mesh.style = styleByMesh[mesh];
+                delete styleByMesh[mesh];
             }
 
             /*----------------------------------
@@ -524,6 +529,23 @@ package starling.extensions.rendererPlus.display
             }
 
             renderPass = prevPass;
+        }
+
+        // OccluderStyle pool
+
+        private const styleByMesh:Dictionary = new Dictionary();
+        private static const _occluderStylePool:Vector.<OccluderStyle> = new <OccluderStyle>[];
+
+        private function getOccluderStyle():OccluderStyle
+        {
+            if(_occluderStylePool.length)
+            {
+                return _occluderStylePool.pop();
+            }
+            else
+            {
+                return new OccluderStyle();
+            }
         }
 
         // Event handlers

@@ -415,7 +415,7 @@ package starling.extensions.rendererPlus.lights.rendering
             attenuationConstants[2] = 1 - attenuationConstants[1];
 
             screenDimensions[0] = Starling.current.stage.stageWidth;
-            screenDimensions[1] = Starling.current.stage.stageHeight;
+            screenDimensions[1] = Starling.current.stage.stageHeight;;
 
             program.activate(context);
             vertexFormat.setVertexBufferAt(0, vertexBuffer, 'position');

@@ -12,6 +12,8 @@ package starling.extensions.rendererPlus.lights.rendering
     import flash.geom.Point;
 
     import starling.core.Starling;
+
+    import starling.core.Starling;
     import starling.extensions.rendererPlus.interfaces.IAreaLight;
     import starling.extensions.rendererPlus.interfaces.IShadowMappedLight;
     import starling.extensions.rendererPlus.lights.Light;
@@ -34,8 +36,8 @@ package starling.extensions.rendererPlus.lights.rendering
             var s:PointLightStyle = meshStyle as PointLightStyle
 
             _castsShadows = s.castsShadows;
-            attenuation = s.attenuation;
-            radius = s.radius;
+            _attenuation = s.attenuation;
+            _radius = s.radius;
             center = s.center;
             light = s.light;
 

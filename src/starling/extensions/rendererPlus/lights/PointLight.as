@@ -85,37 +85,37 @@ package starling.extensions.rendererPlus.lights
             setRequiresRedraw();
         }
 
-        /** @inheritDoc */
-        public override function getBounds(targetSpace:DisplayObject, out:Rectangle = null):Rectangle
-        {
-            if(out == null) out = new Rectangle();
-
-            var transformationMatrix:Matrix = targetSpace == this ?
-                    null : getTransformationMatrix(targetSpace, _helperMatrix);
-
-            return vertexData.getBounds('position', transformationMatrix, 0, -1, out);
-        }
-
-        /** @inheritDoc */
-        override public function hitTest(localPoint:Point):DisplayObject
-        {
-            if(!visible || !touchable || !hitTestMask(localPoint)) return null;
-            else if(_bounds.containsPoint(localPoint)) return this;
-            else return null;
-        }
+//        /** @inheritDoc */
+//        public override function getBounds(targetSpace:DisplayObject, out:Rectangle = null):Rectangle
+//        {
+//            if(out == null) out = new Rectangle();
+//
+//            var transformationMatrix:Matrix = targetSpace == this ?
+//                    null : getTransformationMatrix(targetSpace, _helperMatrix);
+//
+//            return vertexData.getBounds('position', transformationMatrix, 0, -1, out);
+//        }
+//
+//        /** @inheritDoc */
+//        override public function hitTest(localPoint:Point):DisplayObject
+//        {
+//            if(!visible || !touchable || !hitTestMask(localPoint)) return null;
+//            else if(_bounds.containsPoint(localPoint)) return this;
+//            else return null;
+//        }
 
         // Does nothing, this light is a circle after all
 
-        private var _rotation:Number;
-
-        override public function get rotation():Number
-        {
-            return _rotation;
-        }
-
-        override public function set rotation(value:Number):void
-        {
-            _rotation = value;
-        }
+//        private var _rotation:Number;
+//
+//        override public function get rotation():Number
+//        {
+//            return _rotation;
+//        }
+//
+//        override public function set rotation(value:Number):void
+//        {
+//            _rotation = value;
+//        }
     }
 }
