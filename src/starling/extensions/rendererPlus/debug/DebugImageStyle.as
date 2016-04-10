@@ -35,7 +35,7 @@ package starling.extensions.rendererPlus.debug
         {
             if(meshStyle is DebugImageStyle)
             {
-                super.canBatchWith(meshStyle);
+                return super.canBatchWith(meshStyle);
             }
             else return false;
         }
