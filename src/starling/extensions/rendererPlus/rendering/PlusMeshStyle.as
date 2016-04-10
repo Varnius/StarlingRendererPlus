@@ -21,16 +21,10 @@ package starling.extensions.rendererPlus.rendering
         {
             // Should be able to batch with simple MeshStyles because
             // all additional textures (normal, depth etc) are supposed to have the
-            // same properties as the main texture set at sampler #0
+            // same properties as the main texture set at sampler #0, so - no additional data
             if(meshStyle is MeshStyle)
             {
-                var newTexture:Texture = meshStyle.texture;
-
-                if(texture == null && newTexture == null) return true;
-                else if(texture && newTexture)
-                    return texture.base == newTexture.base &&
-                            textureSmoothing == meshStyle.textureSmoothing;
-                else return false;
+                return super.canBatchWith(meshStyle);
             }
             else return false;
         }

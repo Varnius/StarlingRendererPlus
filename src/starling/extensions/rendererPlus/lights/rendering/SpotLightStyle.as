@@ -37,7 +37,7 @@ package starling.extensions.rendererPlus.lights.rendering
         private var globalRotationAtCenter:Number;
         private var globalRotationAtCenterUnnormalized:Number;
         private var globalScale:Number;
-        private var prevFrame:uint = -1;
+        private var prevFrame:uint = uint.MAX_VALUE;
 
         override public function copyFrom(meshStyle:MeshStyle):void
         {

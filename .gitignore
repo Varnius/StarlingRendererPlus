@@ -22,3 +22,4 @@ Thumbs.db
 # IDEA
 /out/
 /.idea
+*.iml
