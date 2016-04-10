@@ -55,10 +55,10 @@ package starling.extensions.rendererPlus.lights.rendering
                                         globalRotationAtCenter:Number
         ):void
         {
-            createShadowMapProgram();
-
-            light.getBounds(stage, tmpBounds);
             var context:Context3D = Starling.context;
+
+            createShadowMapProgram();
+            light.getBounds(stage, tmpBounds);
 
             pointA.setTo(0, 0);
             pointB.setTo(0, radius);

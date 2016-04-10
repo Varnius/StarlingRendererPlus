@@ -6,5 +6,5 @@
 
 package starling.extensions.rendererPlus
 {
-	public namespace renderer_internal = 'http://www.nekobit.eu/renderer_internal';
+    public namespace renderer_internal = 'http://www.nekobit.eu/renderer_internal';
 }

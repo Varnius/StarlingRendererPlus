@@ -46,10 +46,10 @@ package starling.extensions.rendererPlus.lights.rendering
                                         stage:Stage,
                                         light:Light):void
         {
-            createShadowMapProgram();
-
-            var bounds:Rectangle = light.getBounds(stage, tmpBounds);
             var context:Context3D = Starling.current.context;
+
+            createShadowMapProgram();
+            light.getBounds(stage, tmpBounds);
 
             // Split shadowmap generation to multiple draws as AGAL don't support loops yet
             // Offset sampling coords by half-texel to sample exactly at the middle of each texel
@@ -57,10 +57,10 @@ package starling.extensions.rendererPlus.lights.rendering
             // Calculate start coordinates and step sizes
             // vStart will be recalculated before each draw call
 
-            var uStart:Number = (bounds.x / stage.stageWidth) + (1 / bounds.width) * 0.5;
-            var vStart:Number = (bounds.y / stage.stageHeight) + (1 / bounds.height) * 0.5;
-            var uWidth:Number = bounds.width / stage.stageWidth;
-            var vHeight:Number = bounds.height / stage.stageHeight;
+            var uStart:Number = (tmpBounds.x / stage.stageWidth) + (1 / tmpBounds.width) * 0.5;
+            var vStart:Number = (tmpBounds.y / stage.stageHeight) + (1 / tmpBounds.height) * 0.5;
+            var uWidth:Number = tmpBounds.width / stage.stageWidth;
+            var vHeight:Number = tmpBounds.height / stage.stageHeight;
             var numBlocks:Number = Math.ceil(radius / PIXELS_PER_DRAW_CALL);
             var vCurrentBlockOffset:Number = PIXELS_PER_DRAW_CALL;
 
@@ -71,9 +71,9 @@ package starling.extensions.rendererPlus.lights.rendering
             lightBounds[2] = uWidth;
             lightBounds[3] = vHeight;
 
-            shadowMapConstants2[0] = bounds.height;
+            shadowMapConstants2[0] = tmpBounds.height;
             shadowMapConstants2[2] = radius;
-            shadowMapConstants2[3] = 1 / bounds.height * 0.5;
+            shadowMapConstants2[3] = 1 / tmpBounds.height * 0.5;
 
             context.setVertexBufferAt(0, vertexBuffer, 0, Context3DVertexBufferFormat.FLOAT_3);
             context.setTextureAt(0, occluders.base);

@@ -9,7 +9,6 @@ package starling.extensions.rendererPlus.debug
     import starling.rendering.MeshEffect;
     import starling.rendering.MeshStyle;
     import starling.rendering.RenderState;
-    import starling.textures.Texture;
 
     public class DebugImageStyle extends MeshStyle
     {
@@ -36,12 +35,7 @@ package starling.extensions.rendererPlus.debug
         {
             if(meshStyle is DebugImageStyle)
             {
-                var newTexture:Texture = meshStyle.texture;
-
-                if(texture == null && newTexture == null) return true;
-                else if(texture && newTexture)
-                    return texture.base == newTexture.base && textureSmoothing == meshStyle.textureSmoothing;
-                else return false;
+                super.canBatchWith(meshStyle);
             }
             else return false;
         }

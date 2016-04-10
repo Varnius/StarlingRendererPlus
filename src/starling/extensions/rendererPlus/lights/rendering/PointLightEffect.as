@@ -37,26 +37,26 @@ package starling.extensions.rendererPlus.lights.rendering
 
         // Lightmap
 
-        private var sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
-        private var constants:Vector.<Number> = new <Number>[0.5, 1.0, 2.0, 0.0];
-        private var constants2:Vector.<Number> = new <Number>[3.0, 0.0, 0.0, 0.0];
-        private var lightProps:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
-        private var lightProps2:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
-        private var lightColor:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
-        private var halfVec:Vector.<Number> = new <Number>[0.0, 0.0, 1.0, 0.0];
-        private var lightPosition:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
-        private var attenuationConstants:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
-        private var atan2Constants:Vector.<Number> = new <Number>[
+        private static const sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
+        private static const constants:Vector.<Number> = new <Number>[0.5, 1.0, 2.0, 0.0];
+        private static const constants2:Vector.<Number> = new <Number>[3.0, 0.0, 0.0, 0.0];
+        private static const lightProps:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
+        private static const lightProps2:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
+        private static const lightColor:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
+        private static const halfVec:Vector.<Number> = new <Number>[0.0, 0.0, 1.0, 0.0];
+        private static const lightPosition:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
+        private static const attenuationConstants:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
+        private static const atan2Constants:Vector.<Number> = new <Number>[
             0.5, 0.5, Math.PI, 2 * Math.PI,
             2.220446049250313e-16, 0.7853981634, 0.1821, 0.9675, // atan2 magic numbers
         ];
-        private var blurConstants:Vector.<Number> = new <Number>[
+        private static const blurConstants:Vector.<Number> = new <Number>[
             0.05, 0.09, 0.12, 0.15,
             1.0, 2.0, 3.0, 4.0,
             0.18, -1.0, 0.0, 0.0
         ];
-        private var screenDimensions:Vector.<Number> = new <Number>[0, 0, 0, 0];
-        private static var tmpBounds:Rectangle = new Rectangle();
+        private static const screenDimensions:Vector.<Number> = new <Number>[0, 0, 0, 0];
+        private static const tmpBounds:Rectangle = new Rectangle();
 
         override protected function createProgram():Program
         {

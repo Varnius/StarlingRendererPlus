@@ -9,6 +9,9 @@ package starling.extensions.rendererPlus.debug
     import starling.display.Image;
     import starling.textures.Texture;
 
+    /**
+     * You can use this class to render various channels of your RTs.
+     */
     public class DebugImage extends Image
     {
         public function DebugImage(texture:Texture)

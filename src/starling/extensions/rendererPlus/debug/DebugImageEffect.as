@@ -18,6 +18,8 @@ package starling.extensions.rendererPlus.debug
     {
         public static const VERTEX_FORMAT:VertexDataFormat = VertexDataFormat.fromString("position:float2, texCoords:float2, color:bytes4");
 
+        private static const fc0:Vector.<Number> = new <Number>[1, 1, 1, 1];
+
         // Shader constants
 
 
@@ -85,8 +87,7 @@ package starling.extensions.rendererPlus.debug
         override protected function beforeDraw(context:Context3D):void
         {
             super.beforeDraw(context);
-            // todo: cleanup
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, new <Number>[1,1,1,1]);
+            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, fc0);
         }
 
         override protected function afterDraw(context:Context3D):void
@@ -98,6 +99,8 @@ package starling.extensions.rendererPlus.debug
         {
             return VERTEX_FORMAT;
         }
+
+        // Props
 
         public var _showChannel:int;
     }

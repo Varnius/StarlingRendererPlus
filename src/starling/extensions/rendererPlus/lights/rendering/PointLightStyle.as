@@ -31,6 +31,9 @@ package starling.extensions.rendererPlus.lights.rendering
     {
         private static var shadowMapRenderer:PointLightShadowMapRenderer = new PointLightShadowMapRenderer();
 
+        public var center:Point = new Point();
+        public var light:Light;
+
         override public function copyFrom(meshStyle:MeshStyle):void
         {
             var s:PointLightStyle = meshStyle as PointLightStyle
@@ -48,9 +51,6 @@ package starling.extensions.rendererPlus.lights.rendering
         {
             return new PointLightEffect();
         }
-
-        public var center:Point = new Point();
-        public var light:Light;
 
         override public function updateEffect(effect:MeshEffect, state:RenderState):void
         {

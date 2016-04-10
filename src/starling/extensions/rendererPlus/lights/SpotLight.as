@@ -6,11 +6,8 @@
 
 package starling.extensions.rendererPlus.lights
 {
-    import flash.geom.Matrix;
     import flash.geom.Point;
-    import flash.geom.Rectangle;
 
-    import starling.display.DisplayObject;
     import starling.extensions.rendererPlus.RenderPass;
     import starling.extensions.rendererPlus.display.RendererPlus;
     import starling.extensions.rendererPlus.lights.rendering.SpotLightEffect;
@@ -27,8 +24,6 @@ package starling.extensions.rendererPlus.lights
      */
     public class SpotLight extends Light
     {
-        private static var _helperMatrix:Matrix = new Matrix();
-        private var _bounds:Rectangle = new Rectangle();
         private var _numEdges:int = 32;
         private var pointA:Point = new Point();
         private var pointB:Point = new Point();
@@ -100,25 +95,6 @@ package starling.extensions.rendererPlus.lights
                 indexData.addTriangle(_numEdges, i, (i + 1) % _numEdges);
 
             setRequiresRedraw();
-        }
-
-        /** @inheritDoc */
-        public override function getBounds(targetSpace:DisplayObject, out:Rectangle = null):Rectangle
-        {
-            if(out == null) out = new Rectangle();
-
-            var transformationMatrix:Matrix = targetSpace == this ?
-                    null : getTransformationMatrix(targetSpace, _helperMatrix);
-
-            return vertexData.getBounds('position', transformationMatrix, 0, -1, out);
-        }
-
-        /** @inheritDoc */
-        override public function hitTest(localPoint:Point):DisplayObject
-        {
-            if(!visible || !touchable || !hitTestMask(localPoint)) return null;
-            else if(_bounds.containsPoint(localPoint)) return this;
-            else return null;
         }
     }
 }

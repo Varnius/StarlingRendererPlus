@@ -6,13 +6,8 @@
 
 package starling.extensions.rendererPlus.lights
 {
-    import flash.geom.Matrix;
-    import flash.geom.Matrix3D;
     import flash.geom.Point;
-    import flash.geom.Rectangle;
-    import flash.geom.Vector3D;
 
-    import starling.display.DisplayObject;
     import starling.extensions.rendererPlus.RenderPass;
     import starling.extensions.rendererPlus.display.RendererPlus;
     import starling.extensions.rendererPlus.lights.rendering.PointLightEffect;
@@ -29,8 +24,6 @@ package starling.extensions.rendererPlus.lights
      */
     public class PointLight extends Light
     {
-        private static var _helperMatrix:Matrix = new Matrix();
-        private var _bounds:Rectangle = new Rectangle();
         private var _mNumEdges:int = 8;
 
         public function PointLight()
@@ -84,38 +77,5 @@ package starling.extensions.rendererPlus.lights
 
             setRequiresRedraw();
         }
-
-//        /** @inheritDoc */
-//        public override function getBounds(targetSpace:DisplayObject, out:Rectangle = null):Rectangle
-//        {
-//            if(out == null) out = new Rectangle();
-//
-//            var transformationMatrix:Matrix = targetSpace == this ?
-//                    null : getTransformationMatrix(targetSpace, _helperMatrix);
-//
-//            return vertexData.getBounds('position', transformationMatrix, 0, -1, out);
-//        }
-//
-//        /** @inheritDoc */
-//        override public function hitTest(localPoint:Point):DisplayObject
-//        {
-//            if(!visible || !touchable || !hitTestMask(localPoint)) return null;
-//            else if(_bounds.containsPoint(localPoint)) return this;
-//            else return null;
-//        }
-
-        // Does nothing, this light is a circle after all
-
-//        private var _rotation:Number;
-//
-//        override public function get rotation():Number
-//        {
-//            return _rotation;
-//        }
-//
-//        override public function set rotation(value:Number):void
-//        {
-//            _rotation = value;
-//        }
     }
 }
