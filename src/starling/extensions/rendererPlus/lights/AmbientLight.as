@@ -11,9 +11,9 @@ package starling.extensions.rendererPlus.lights
     import starling.display.DisplayObject;
     import starling.extensions.rendererPlus.lights.rendering.LightStyle;
     import starling.rendering.IndexData;
-    import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
+    import starling.styles.MeshStyle;
 
     /**
      * Represents an even amount of light, added to each pixel on the screen.
@@ -37,7 +37,7 @@ package starling.extensions.rendererPlus.lights
 
         public override function getBounds(targetSpace:DisplayObject, resultRect:Rectangle = null):Rectangle
         {
-           return null;
+            return null;
         }
     }
 }

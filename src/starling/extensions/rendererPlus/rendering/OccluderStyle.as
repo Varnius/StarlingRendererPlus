@@ -7,7 +7,7 @@
 package starling.extensions.rendererPlus.rendering
 {
     import starling.rendering.MeshEffect;
-    import starling.rendering.MeshStyle;
+    import starling.styles.MeshStyle;
 
     public class OccluderStyle extends MeshStyle
     {

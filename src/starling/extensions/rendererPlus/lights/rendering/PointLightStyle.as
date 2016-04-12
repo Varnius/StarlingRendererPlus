@@ -12,17 +12,15 @@ package starling.extensions.rendererPlus.lights.rendering
     import flash.geom.Point;
 
     import starling.core.Starling;
-
-    import starling.core.Starling;
     import starling.extensions.rendererPlus.interfaces.IAreaLight;
     import starling.extensions.rendererPlus.interfaces.IShadowMappedLight;
     import starling.extensions.rendererPlus.lights.Light;
     import starling.extensions.rendererPlus.lights.PointLight;
     import starling.extensions.rendererPlus.renderer_internal;
     import starling.rendering.MeshEffect;
-    import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.rendering.RenderState;
+    import starling.styles.MeshStyle;
     import starling.textures.Texture;
 
     use namespace renderer_internal;
@@ -135,7 +133,7 @@ package starling.extensions.rendererPlus.lights.rendering
             if(value && !_shadowMap)
             {
                 // todo: add property textureSize
-                _shadowMap = Texture.empty(512, 1, false, false, true, -1, Context3DTextureFormat.BGRA);
+                _shadowMap = Texture.empty(512, 1, false, false, true, 1, Context3DTextureFormat.BGRA);
             }
 
             if(!value && _shadowMap)

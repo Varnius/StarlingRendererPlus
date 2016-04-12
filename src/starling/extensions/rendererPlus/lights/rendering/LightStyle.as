@@ -7,7 +7,7 @@
 package starling.extensions.rendererPlus.lights.rendering
 {
     import starling.extensions.rendererPlus.renderer_internal;
-    import starling.rendering.MeshStyle;
+    import starling.styles.MeshStyle;
 
     use namespace renderer_internal;
 

@@ -7,8 +7,7 @@
 package starling.extensions.rendererPlus.rendering
 {
     import starling.rendering.MeshEffect;
-    import starling.rendering.MeshStyle;
-    import starling.textures.Texture;
+    import starling.styles.MeshStyle;
 
     public class PlusMeshStyle extends MeshStyle
     {

@@ -130,7 +130,6 @@ package starling.extensions.rendererPlus.display
 
             prepare();
             registerPrograms();
-            updateSupportsRenderCache();
 
             // Handle lost context
             Starling.current.addEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
@@ -213,10 +212,10 @@ package starling.extensions.rendererPlus.display
             // HALF_FLOAT format is used to increase the precision of specular params
             // No difference for normals or depth because those are not calculated at the run time but all RTs must be same format
 
-            diffuseRT = Texture.empty(w, h, false, false, true, -1, Context3DTextureFormat.RGBA_HALF_FLOAT);
-            normalsRT = Texture.empty(w, h, false, false, true, -1, Context3DTextureFormat.RGBA_HALF_FLOAT);
-            depthRT = Texture.empty(w, h, false, false, true, -1, Context3DTextureFormat.RGBA_HALF_FLOAT);
-            occludersRT = Texture.empty(w, h, false, false, true, -1, Context3DTextureFormat.BGRA);
+            diffuseRT = Texture.empty(w, h, false, false, true, 1, Context3DTextureFormat.RGBA_HALF_FLOAT);
+            normalsRT = Texture.empty(w, h, false, false, true, 1, Context3DTextureFormat.RGBA_HALF_FLOAT);
+            depthRT = Texture.empty(w, h, false, false, true, 1, Context3DTextureFormat.RGBA_HALF_FLOAT);
+            occludersRT = Texture.empty(w, h, false, false, true, 1, Context3DTextureFormat.BGRA);
 
             MRTPassRenderTargets = new Vector.<Texture>();
             MRTPassRenderTargets.push(diffuseRT, normalsRT, depthRT);
@@ -275,17 +274,11 @@ package starling.extensions.rendererPlus.display
 
         override public function render(painter:Painter):void
         {
+            painter.excludeFromCache(this);
             var obj:DisplayObject;
 
-            if(!prepared)
-            {
-                prepare();
-            }
-
-            if(!lights.length)
-            {
-                return;
-            }
+            if(!prepared) prepare();
+            if(!lights.length) return;
 
             // Find visible lights and ambient light
 
@@ -306,17 +299,11 @@ package starling.extensions.rendererPlus.display
                 // Skip early if light is already culled
                 // I'm using this with QuadTreeSprite
 
-                if(!l.visible || !l.parent)
-                {
-                    continue;
-                }
+                if(!l.visible || !l.parent) continue;
 
                 l.getBounds(stage, tmpBounds);
 
-                if(stageBounds.containsRect(tmpBounds) || stageBounds.intersects(tmpBounds))
-                {
-                    visibleLights.push(l);
-                }
+                if(stageBounds.containsRect(tmpBounds) || stageBounds.intersects(tmpBounds)) visibleLights.push(l);
             }
 
             /*----------------------------------
@@ -472,6 +459,7 @@ package starling.extensions.rendererPlus.display
                     context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, ambient, 1);
                     context.drawTriangles(overlayIndexBuffer);
                     context.setVertexBufferAt(1, null);
+                    painter.drawCount += 1;
                 }
 
                 // Bind textures required by other types of lights
@@ -556,13 +544,6 @@ package starling.extensions.rendererPlus.display
             prepare();
             registerPrograms();
             setRequiresRedraw();
-        }
-
-        // Props
-
-        override protected function get supportsRenderCache():Boolean
-        {
-            return false;
         }
     }
 }

@@ -7,8 +7,8 @@
 package starling.extensions.rendererPlus.debug
 {
     import starling.rendering.MeshEffect;
-    import starling.rendering.MeshStyle;
     import starling.rendering.RenderState;
+    import starling.styles.MeshStyle;
 
     public class DebugImageStyle extends MeshStyle
     {

@@ -11,9 +11,9 @@ package starling.extensions.rendererPlus.lights
     import starling.extensions.rendererPlus.display.RendererPlus;
     import starling.extensions.rendererPlus.renderer_internal;
     import starling.rendering.IndexData;
-    import starling.rendering.MeshStyle;
     import starling.rendering.Painter;
     import starling.rendering.VertexData;
+    import starling.styles.MeshStyle;
 
     use namespace renderer_internal;
 
