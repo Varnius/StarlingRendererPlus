@@ -26,6 +26,7 @@ package starling.extensions.rendererPlus.display
     import starling.display.DisplayObject;
     import starling.display.DisplayObjectContainer;
     import starling.display.Mesh;
+    import starling.display.Quad;
     import starling.events.Event;
     import starling.extensions.rendererPlus.RenderPass;
     import starling.extensions.rendererPlus.interfaces.IAreaLight;
@@ -39,6 +40,7 @@ package starling.extensions.rendererPlus.display
     import starling.rendering.Painter;
     import starling.rendering.Program;
     import starling.textures.Texture;
+    import starling.utils.SystemUtil;
 
     use namespace renderer_internal;
     use namespace starling_internal;
@@ -57,6 +59,15 @@ package starling.extensions.rendererPlus.display
 
         public static var OPCODE_LIMIT:int;
         public static var AGAL_VERSION:int;
+
+        private static var RTIndices:Vector.<int>;
+        {
+            // On Android, MRT targets seem to be scrambled in this order
+            if(SystemUtil.platform == 'AND')
+                RTIndices = new <int>[2, 0, 1];
+            else
+                RTIndices = new <int>[0, 1, 2];
+        }
 
         // Quad
 
@@ -316,9 +327,9 @@ package starling.extensions.rendererPlus.display
 
             // Set render targets, clear them and render background only
 
-            painter.state.setRenderTarget(MRTPassRenderTargets[0], false, 0);
-            context.setRenderToTexture(MRTPassRenderTargets[1].base, false, 0, 0, 1);
-            context.setRenderToTexture(MRTPassRenderTargets[2].base, false, 0, 0, 2);
+            painter.state.setRenderTarget(MRTPassRenderTargets[RTIndices[0]], false, 0);
+            context.setRenderToTexture(MRTPassRenderTargets[RTIndices[1]].base, false, 0, 0, 1);
+            context.setRenderToTexture(MRTPassRenderTargets[RTIndices[2]].base, false, 0, 0, 2);
 
             var prevPass:String = renderPass;
             renderPass = RenderPass.MRT;
