@@ -55,7 +55,7 @@ package starling.extensions.rendererPlus.lights
 
                 for(var i:int = 0; i < numVertices; ++i)
                 {
-                    vertexData.setPoint3D(i, 'lightColor', style._colorR, style._colorG, style._colorB);
+                    vertexData.setColor(i, 'lightColor', style.color);
                     vertexData.setPoint3D(i, 'lightPosition', center.x, center.y, style.radius / 2);
                     vertexData.setPoint4D(i, 'lightProps', scaledRadius, style.strength, 1 / scaledRadius, scaledRadius * scaledRadius);
                     vertexData.setFloat(i, 'castsShadows', style.castsShadows ? 1.0 : 0.0);

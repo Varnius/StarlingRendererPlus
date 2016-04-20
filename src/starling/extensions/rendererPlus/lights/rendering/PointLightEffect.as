@@ -34,7 +34,7 @@ package starling.extensions.rendererPlus.lights.rendering
     public class PointLightEffect extends MeshEffect
     {
         public static const VERTEX_FORMAT:VertexDataFormat =
-                VertexDataFormat.fromString("position:float2, lightColor:float3, lightPosition:float3, lightProps:float4, castsShadows:float1, attenuation:float3");
+                VertexDataFormat.fromString("position:float2, lightColor:bytes4, lightPosition:float3, lightProps:float4, castsShadows:float1, attenuation:float3");
 
         // Lightmap
 
