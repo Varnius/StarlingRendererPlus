@@ -9,7 +9,6 @@ package starling.extensions.rendererPlus.lights.rendering
     import flash.display3D.Context3DTextureFormat;
     import flash.display3D.IndexBuffer3D;
     import flash.display3D.VertexBuffer3D;
-    import flash.geom.Point;
 
     import starling.core.Starling;
     import starling.extensions.rendererPlus.interfaces.IAreaLight;
@@ -20,6 +19,7 @@ package starling.extensions.rendererPlus.lights.rendering
     import starling.rendering.MeshEffect;
     import starling.rendering.Painter;
     import starling.rendering.RenderState;
+    import starling.rendering.VertexDataFormat;
     import starling.styles.MeshStyle;
     import starling.textures.Texture;
 
@@ -27,9 +27,9 @@ package starling.extensions.rendererPlus.lights.rendering
 
     public class PointLightStyle extends LightStyle implements IShadowMappedLight, IAreaLight
     {
+        public static const VERTEX_FORMAT:VertexDataFormat = PointLightEffect.VERTEX_FORMAT;
         private static var shadowMapRenderer:PointLightShadowMapRenderer = new PointLightShadowMapRenderer();
 
-        public var center:Point = new Point();
         public var light:Light;
 
         override public function copyFrom(meshStyle:MeshStyle):void
@@ -39,7 +39,6 @@ package starling.extensions.rendererPlus.lights.rendering
             _castsShadows = s.castsShadows;
             _attenuation = s.attenuation;
             _radius = s.radius;
-            center = s.center;
             light = s.light;
 
             super.copyFrom(meshStyle);
@@ -52,25 +51,13 @@ package starling.extensions.rendererPlus.lights.rendering
 
         override public function updateEffect(effect:MeshEffect, state:RenderState):void
         {
-            var e:PointLightEffect = effect as PointLightEffect;
-
-            e.castsShadows = _castsShadows;
-            e.attenuation = _attenuation;
-            e.light = light;
-            e.radius = _radius;
-            e.center = center;
-            e.strength = _strength;
-            e.colorR = _colorR;
-            e.colorG = _colorG;
-            e.colorB = _colorB;
-
+            (effect as PointLightEffect).castsShadows = _castsShadows;
             super.updateEffect(effect, state);
         }
 
         override public function canBatchWith(meshStyle:MeshStyle):Boolean
         {
-            // Can't really batch with other lights since some shader params (like light position) are set per-light
-            return false;
+            return meshStyle is PointLightStyle;
         }
 
         public function renderShadowMap(painter:Painter,
@@ -93,6 +80,7 @@ package starling.extensions.rendererPlus.lights.rendering
         public function set attenuation(value:Number):void
         {
             _attenuation = value <= 0 ? Number.MIN_VALUE : value;
+            setRequiresRedraw();
         }
 
         private var _radius:Number = 100.0;
@@ -141,6 +129,8 @@ package starling.extensions.rendererPlus.lights.rendering
                 _shadowMap.dispose();
                 _shadowMap = null;
             }
+
+            setRequiresRedraw();
         }
 
         private var _shadowMap:Texture;
@@ -148,6 +138,11 @@ package starling.extensions.rendererPlus.lights.rendering
         public function get shadowMap():Texture
         {
             return _shadowMap;
+        }
+
+        override public function get vertexFormat():VertexDataFormat
+        {
+            return VERTEX_FORMAT;
         }
     }
 }

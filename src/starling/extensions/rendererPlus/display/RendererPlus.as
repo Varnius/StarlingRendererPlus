@@ -510,15 +510,16 @@ package starling.extensions.rendererPlus.display
                         }
 
                         l.render(painter);
-                        painter.finishMeshBatch();
-
-                        if(shadowMappedLight && shadowMappedLight.castsShadows)
-                        {
-                            context.setTextureAt(2, null);
-                            context.setTextureAt(3, null);
-                        }
                     }
                 }
+
+                if(shadowMappedLight && shadowMappedLight.castsShadows)
+                {
+                    context.setTextureAt(2, null);
+                    context.setTextureAt(3, null);
+                }
+
+                painter.finishMeshBatch();
 
                 context.setTextureAt(0, null);
                 context.setTextureAt(1, null);

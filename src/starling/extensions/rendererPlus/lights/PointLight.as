@@ -7,6 +7,7 @@
 package starling.extensions.rendererPlus.lights
 {
     import flash.geom.Point;
+    import flash.geom.Rectangle;
 
     import starling.extensions.rendererPlus.RenderPass;
     import starling.extensions.rendererPlus.display.RendererPlus;
@@ -25,6 +26,8 @@ package starling.extensions.rendererPlus.lights
     public class PointLight extends Light
     {
         private var _mNumEdges:int = 8;
+        private static var tmpBounds:Rectangle = new Rectangle();
+        private static var center:Point = new Point();
 
         public function PointLight()
         {
@@ -42,9 +45,23 @@ package starling.extensions.rendererPlus.lights
             if(RendererPlus.renderPass == RenderPass.LIGHTS)
             {
                 var style:PointLightStyle = this.style as PointLightStyle;
+                var numVertices:int = vertexData.numVertices;
 
-                style.center.setTo(0, 0);
-                localToGlobal(style.center, style.center);
+                getBounds(null, tmpBounds);
+                var scaledRadius:Number = tmpBounds.width / 2;
+
+                center.setTo(0, 0);
+                localToGlobal(center, center);
+
+                for(var i:int = 0; i < numVertices; ++i)
+                {
+                    vertexData.setPoint3D(i, 'lightColor', style._colorR, style._colorG, style._colorB);
+                    vertexData.setPoint3D(i, 'lightPosition', center.x, center.y, style.radius / 2);
+                    vertexData.setPoint4D(i, 'lightProps', scaledRadius, style.strength, 1 / scaledRadius, scaledRadius * scaledRadius);
+                    vertexData.setFloat(i, 'castsShadows', style.castsShadows ? 1.0 : 0.0);
+                    vertexData.setPoint3D(i, 'attenuation', style.attenuation, 1 / (style.attenuation + 1), 1 - (1 / (style.attenuation + 1)));
+                }
+
                 super.render(painter);
             }
         }
@@ -77,5 +94,7 @@ package starling.extensions.rendererPlus.lights
 
             setRequiresRedraw();
         }
+
+        override public function set rotation(value:Number):void {}
     }
 }

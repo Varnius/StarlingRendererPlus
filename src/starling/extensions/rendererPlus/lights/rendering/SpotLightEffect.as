@@ -39,7 +39,6 @@ package starling.extensions.rendererPlus.lights.rendering
 
         // Lightmap
 
-        private static const sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         private static const constants:Vector.<Number> = new <Number>[0.5, 1.0, 2.0, 0.0];
         private static const constants2:Vector.<Number> = new <Number>[3.0, 0.0, 0.0, 0.0];
         private static const lightProps:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
@@ -567,8 +566,6 @@ package starling.extensions.rendererPlus.lights.rendering
 
         override protected function beforeDraw(context:Context3D):void
         {
-            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = alpha;
-
             // Set constants
 
             // Light direction vector

@@ -50,6 +50,7 @@ package starling.extensions.rendererPlus.lights.rendering
             _colorG = ((value >> 8) & 0xff) / 255.0;
             _colorB = ( value & 0xff) / 255.0;
             _color = value;
+            setRequiresRedraw();
         }
 
         protected var _strength:Number;
@@ -62,6 +63,7 @@ package starling.extensions.rendererPlus.lights.rendering
         public function set strength(value:Number):void
         {
             _strength = value;
+            setRequiresRedraw();
         }
     }
 }

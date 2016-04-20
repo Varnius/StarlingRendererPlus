@@ -33,19 +33,14 @@ package starling.extensions.rendererPlus.lights.rendering
 
     public class PointLightEffect extends MeshEffect
     {
-        public static const VERTEX_FORMAT:VertexDataFormat = VertexDataFormat.fromString("position:float2");
+        public static const VERTEX_FORMAT:VertexDataFormat =
+                VertexDataFormat.fromString("position:float2, lightColor:float3, lightPosition:float3, lightProps:float4, castsShadows:float1, attenuation:float3");
 
         // Lightmap
 
-        private static const sRenderAlpha:Vector.<Number> = new <Number>[1.0, 1.0, 1.0, 1.0];
         private static const constants:Vector.<Number> = new <Number>[0.5, 1.0, 2.0, 0.0];
         private static const constants2:Vector.<Number> = new <Number>[3.0, 0.0, 0.0, 0.0];
-        private static const lightProps:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
-        private static const lightProps2:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
-        private static const lightColor:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
         private static const halfVec:Vector.<Number> = new <Number>[0.0, 0.0, 1.0, 0.0];
-        private static const lightPosition:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
-        private static const attenuationConstants:Vector.<Number> = new <Number>[0.0, 0.0, 0.0, 0.0];
         private static const atan2Constants:Vector.<Number> = new <Number>[
             0.5, 0.5, Math.PI, 2 * Math.PI,
             2.220446049250313e-16, 0.7853981634, 0.1821, 0.9675, // atan2 magic numbers
@@ -56,7 +51,6 @@ package starling.extensions.rendererPlus.lights.rendering
             0.18, -1.0, 0.0, 0.0
         ];
         private static const screenDimensions:Vector.<Number> = new <Number>[0, 0, 0, 0];
-        private static const tmpBounds:Rectangle = new Rectangle();
 
         override protected function createProgram():Program
         {
@@ -69,16 +63,16 @@ package starling.extensions.rendererPlus.lights.rendering
                                 'm44 vt0, va0, vc0',
                                 'mov op, vt0',
                                 'div v0, vt0, vt0.w',
+                                'mov v1, va1',
+                                'mov v2, va2',
+                                'mov v3, va3',
+                                'mov v4, va4',
+                                'mov v5, va5'
                             ]
                     );
 
             // fc0 - constants [0.5, 1, 2, 0]
-            // fc1 - light position in eye coordinates, screen width/height [x, y, z (fake), 0]
-            // fc2 - light properties [radius, strength, 1 / radius, radius^2]
-            // fc3 - light color [r, g, b, 0]
             // fc4 - halfVec [0, 0, 1, 0]
-            // fc5 - attenuation constants [0, 0, 0, att_s]
-            // fc7 - [castsShadows, 0, 0, 0]
             // fc8 - [1.0, 0.0, PI, 2PI]
             // fc9 - [1e-10, 0.5PI, 0.0, 0.0]
             // fc10 - constants2 [3, 0, 0, 0]
@@ -86,6 +80,12 @@ package starling.extensions.rendererPlus.lights.rendering
             // fc12 - blur constants [1, 2, 3, 4]
             // fc13 - blur constants [0.16, -1, 0, 0]
             // fc14 - [screenWidth, screenHeight, 0, 0]
+
+            // v1 - light color [r, g, b, 0]
+            // v2 - light position in eye coordinates, screen width/height [x, y, z (fake), 0] va2
+            // v3 - light properties [radius, strength, 1 / radius, radius^2]
+            // v4 - [castsShadows, 0, 0, 0]
+            // v5 - attenuation constants [0, 0, 0, att_s]
 
             var fragmentProgramCode:String =
                     ShaderUtils.joinProgramArray(
@@ -134,7 +134,7 @@ package starling.extensions.rendererPlus.lights.rendering
 
                                 // float3 lightDirection3D = lightPosition.xyz - pixelPosition.xyz;
                                 // z(light) = positive float, z(pixel) = 0
-                                'sub ft3.xyz, fc1.xyz, ft3.xyz',
+                                'sub ft3.xyz, v2.xyz, ft3.xyz',
                                 'mov ft3.w, fc0.w',
 
                                 // Save length(lightDirection2D) to ft20.x for later shadow calculations
@@ -142,7 +142,7 @@ package starling.extensions.rendererPlus.lights.rendering
                                 'pow ft20.y, ft3.y, fc0.z',
                                 'add ft20.x, ft20.x, ft20.y',
                                 'sqt ft20.x, ft20.x',
-                                'div ft20.x, ft20.x, fc2.x',
+                                'div ft20.x, ft20.x, v3.x',
 
                                 // float3 lightDirNorm = normalize(lightDirection3D);
                                 'nrm ft7.xyz, ft3.xyz',
@@ -161,12 +161,12 @@ package starling.extensions.rendererPlus.lights.rendering
                                 // Put it in ft5.y
                                 'mov ft3.z, fc0.w', // attenuation is calculated in 2D
                                 'dp3 ft5.y, ft3.xyz, ft3.xyz',
-                                'div ft5.y, ft5.y, fc2.w',
-                                'mul ft5.y, ft5.y, fc5.x',
+                                'div ft5.y, ft5.y, v3.w',
+                                'mul ft5.y, ft5.y, v5.x',
                                 'add ft5.y, ft5.y, fc0.y',
                                 'rcp ft5.y, ft5.y',
-                                'sub ft5.y, ft5.y, fc5.y',
-                                'div ft5.y, ft5.y, fc5.z',
+                                'sub ft5.y, ft5.y, v5.y',
+                                'div ft5.y, ft5.y, v5.z',
 
                                 /*-----------------------
                                  Calculate specular
@@ -187,7 +187,7 @@ package starling.extensions.rendererPlus.lights.rendering
                                  -----------------------*/
 
                                 // Output.Color = lightColor * coneAttenuation * lightStrength
-                                'mul ft6.xyz, ft5.yyy, fc3.xyz',
+                                'mul ft6.xyz, ft5.yyy, v1.xyz',
                                 'mul ft6.xyz, ft6.xyz, ft5.x',
 
                                 // + (coneAttenuation * specular * specularStrength)
@@ -202,9 +202,9 @@ package starling.extensions.rendererPlus.lights.rendering
                                 'tex ft1, ft0.xy, fs4 <2d, clamp, linear, mipnone>',
 
                                 // light = (specular * lightColor + diffuseLight) * lightStrength
-                                'mul ft2.xyz, ft6.www, fc3.xyz,',
+                                'mul ft2.xyz, ft6.www, v1.xyz,',
                                 'add ft2.xyz, ft2.xyz, ft6.xyz',
-                                'mul ft2.xyz, ft2.xyz, fc2.yyy ',
+                                'mul ft2.xyz, ft2.xyz, v3.yyy ',
                                 'mov ft2.w, fc0.y',
 
                                 // light * diffuseRT
@@ -226,8 +226,8 @@ package starling.extensions.rendererPlus.lights.rendering
 
                                 // Calculate pixel position in lights own coordinate system, where
                                 // the center is (0, 0) and Y axis increases downwards
-                                'sub ft11.xy, ft21.xy, fc1.xy',
-                                'div ft11.xy, ft11.xy, fc2.x',
+                                'sub ft11.xy, ft21.xy, v2.xy',
+                                'div ft11.xy, ft11.xy, v3.x',
                                 'neg ft11.y, ft11.y',
                                 'mov ft11.zw, fc0.ww',
 
@@ -271,7 +271,7 @@ package starling.extensions.rendererPlus.lights.rendering
                                 'sub ft11.x, fc10.x, ft11.x',
                                 'mul ft11.x, ft11.x, ft20.x',
                                 'mul ft11.x, ft11.x, ft20.x',
-                                'mul ft11.x, ft11.x, fc2.z',
+                                'mul ft11.x, ft11.x, v3.z',
 
                                 // We`ll sum into ft12.x
                                 // sum = 0
@@ -388,46 +388,23 @@ package starling.extensions.rendererPlus.lights.rendering
 
         override protected function beforeDraw(context:Context3D):void
         {
-            sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = alpha;
-
-            // Set constants
-
-            lightPosition[0] = center.x;
-            lightPosition[1] = center.y;
-            lightPosition[2] = radius / 2;
-
-            light.getBounds(null, tmpBounds);
-            var scaledRadius:Number = tmpBounds.width / 2;
-
-            lightProps[0] = scaledRadius;
-            lightProps[1] = strength;
-            lightProps[2] = 1 / scaledRadius;
-            lightProps[3] = scaledRadius * scaledRadius;
-
-            lightProps2[0] = castsShadows ? 1.0 : 0.0;
-
-            lightColor[0] = colorR;
-            lightColor[1] = colorG;
-            lightColor[2] = colorB;
-
-            attenuationConstants[0] = attenuation;
-            attenuationConstants[1] = 1 / (attenuationConstants[0] + 1);
-            attenuationConstants[2] = 1 - attenuationConstants[1];
-
             screenDimensions[0] = Starling.current.stage.stageWidth;
-            screenDimensions[1] = Starling.current.stage.stageHeight;;
+            screenDimensions[1] = Starling.current.stage.stageHeight;
+            ;
 
             program.activate(context);
+
             vertexFormat.setVertexBufferAt(0, vertexBuffer, 'position');
+            vertexFormat.setVertexBufferAt(1, vertexBuffer, 'lightColor');
+            vertexFormat.setVertexBufferAt(2, vertexBuffer, 'lightPosition');
+            vertexFormat.setVertexBufferAt(3, vertexBuffer, 'lightProps');
+            vertexFormat.setVertexBufferAt(4, vertexBuffer, 'castsShadows');
+            vertexFormat.setVertexBufferAt(5, vertexBuffer, 'attenuation');
+
             context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, mvpMatrix3D, true);
             context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 5, constants, 1);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, constants, 1);
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 1, lightPosition, 1);
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 2, lightProps, 1);
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 3, lightColor, 1);
             context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 4, halfVec, 1);
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 5, attenuationConstants, 1);
-            context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 7, lightProps2, 1);
 
             if(castsShadows)
             {
@@ -441,18 +418,15 @@ package starling.extensions.rendererPlus.lights.rendering
 
         override protected function afterDraw(context:Context3D):void
         {
-            context.setVertexBufferAt(0, null);
+            for(var i:int = 0; i < 6; i++)
+            {
+                context.setVertexBufferAt(i, null);
+            }
         }
 
         // Props
 
-        public var light:Light;
-        public var radius:int;
-        public var center:Point = new Point();
         public var castsShadows:Boolean;
-        public var attenuation:Number;
-        public var strength:Number;
-        public var colorR:Number, colorG:Number, colorB:Number;
 
         override public function get vertexFormat():VertexDataFormat
         {
