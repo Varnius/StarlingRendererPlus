@@ -9,25 +9,21 @@ package starling.extensions.rendererPlus.lights.rendering
     import com.adobe.utils.AGALMiniAssembler;
 
     import flash.display3D.Context3D;
+    import flash.display3D.Context3DBufferUsage;
     import flash.display3D.Context3DProgramType;
-    import flash.display3D.Context3DVertexBufferFormat;
-    import flash.display3D.IndexBuffer3D;
-    import flash.display3D.VertexBuffer3D;
     import flash.geom.Point;
     import flash.geom.Rectangle;
 
     import starling.core.Starling;
-    import starling.display.Mesh;
-    import starling.display.Stage;
     import starling.extensions.rendererPlus.display.RendererPlus;
     import starling.extensions.rendererPlus.lights.Light;
     import starling.extensions.rendererPlus.renderer_internal;
     import starling.extensions.utils.ShaderUtils;
+    import starling.rendering.IndexData;
     import starling.rendering.MeshEffect;
-    import starling.rendering.Painter;
     import starling.rendering.Program;
+    import starling.rendering.VertexData;
     import starling.rendering.VertexDataFormat;
-    import starling.textures.Texture;
 
     use namespace renderer_internal;
 
@@ -386,6 +382,16 @@ package starling.extensions.rendererPlus.lights.rendering
             return castsShadows ? 1 : 0;
         }
 
+        override public function uploadVertexData(vertexData:VertexData, bufferUsage:String="staticDraw"):void
+        {
+            super.uploadVertexData(vertexData, Context3DBufferUsage.DYNAMIC_DRAW);
+        }
+
+        override public function uploadIndexData(indexData:IndexData, bufferUsage:String="staticDraw"):void
+        {
+            super.uploadIndexData(indexData, Context3DBufferUsage.DYNAMIC_DRAW);
+        }
+
         override protected function beforeDraw(context:Context3D):void
         {
             sRenderAlpha[0] = sRenderAlpha[1] = sRenderAlpha[2] = sRenderAlpha[3] = alpha;
@@ -415,7 +421,8 @@ package starling.extensions.rendererPlus.lights.rendering
             attenuationConstants[2] = 1 - attenuationConstants[1];
 
             screenDimensions[0] = Starling.current.stage.stageWidth;
-            screenDimensions[1] = Starling.current.stage.stageHeight;;
+            screenDimensions[1] = Starling.current.stage.stageHeight;
+            ;
 
             program.activate(context);
             vertexFormat.setVertexBufferAt(0, vertexBuffer, 'position');
